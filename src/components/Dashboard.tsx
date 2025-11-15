@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Building2, BookOpen, UtensilsCrossed, Map, Calendar } from "lucide-react";
+import { Search, Plus, Building2, BookOpen, UtensilsCrossed, Map, Calendar, ArrowUpDown } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import LocationCard, { Location } from "./LocationCard";
@@ -13,6 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 import { getLocations, spotLocations } from "@/data/locations";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 
 // Get locations from centralized data source
 const mockLocations: Location[] = getLocations();
@@ -46,6 +53,7 @@ const Dashboard = () => {
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "study" | "dining">("all");
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [sortBy, setSortBy] = useState<"distance" | "crowdedness" | "noise" | "default">("default");
 
   useEffect(() => {
     // Get current user
@@ -260,10 +268,56 @@ const Dashboard = () => {
     return matchesSearch && matchesType;
   });
 
+  // Sort locations based on selected sort option
+  const sortedLocations = [...filteredLocations].sort((a, b) => {
+    switch (sortBy) {
+      case "distance":
+        if (!a.distance && !b.distance) return 0;
+        if (!a.distance) return 1;
+        if (!b.distance) return -1;
+        return a.distance - b.distance;
+      case "crowdedness":
+        return (b.crowdednessRating || 0) - (a.crowdednessRating || 0);
+      case "noise":
+        return (a.noiseLevelRating || 0) - (b.noiseLevelRating || 0);
+      default:
+        return 0;
+    }
+  });
+
   const filteredEvents = events.filter((event) =>
     event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.locationName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Sort events based on selected sort option
+  const sortedEvents = [...filteredEvents].sort((a, b) => {
+    switch (sortBy) {
+      case "distance":
+        if (!a.distance && !b.distance) return 0;
+        if (!a.distance) return 1;
+        if (!b.distance) return -1;
+        return a.distance - b.distance;
+      case "crowdedness":
+        const avgCrowdednessA = a.crowdednessRatings.length > 0
+          ? a.crowdednessRatings.reduce((sum, r) => sum + r, 0) / a.crowdednessRatings.length
+          : 0;
+        const avgCrowdednessB = b.crowdednessRatings.length > 0
+          ? b.crowdednessRatings.reduce((sum, r) => sum + r, 0) / b.crowdednessRatings.length
+          : 0;
+        return avgCrowdednessB - avgCrowdednessA;
+      case "noise":
+        const avgNoiseA = a.noiseLevelRatings.length > 0
+          ? a.noiseLevelRatings.reduce((sum, r) => sum + r, 0) / a.noiseLevelRatings.length
+          : 0;
+        const avgNoiseB = b.noiseLevelRatings.length > 0
+          ? b.noiseLevelRatings.reduce((sum, r) => sum + r, 0) / b.noiseLevelRatings.length
+          : 0;
+        return avgNoiseA - avgNoiseB;
+      default:
+        return b.checkInCount - a.checkInCount; // Default sort by check-ins
+    }
+  });
 
   const getEventsForLocation = (locationId: string) => {
     return events.filter((event) => event.locationId === locationId);
@@ -498,38 +552,56 @@ const Dashboard = () => {
             </div>
 
             {/* Type Filter for Spots */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={typeFilter === "all" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTypeFilter("all")}
-                className="gap-2"
-              >
-                <Building2 className="h-4 w-4" />
-                All Spots
-              </Button>
-              <Button
-                variant={typeFilter === "study" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTypeFilter("study")}
-                className="gap-2"
-              >
-                <BookOpen className="h-4 w-4" />
-                Study Spots
-              </Button>
-              <Button
-                variant={typeFilter === "dining" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setTypeFilter("dining")}
-                className="gap-2"
-              >
-                <UtensilsCrossed className="h-4 w-4" />
-                Dining Halls
-              </Button>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant={typeFilter === "all" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTypeFilter("all")}
+                  className="gap-2"
+                >
+                  <Building2 className="h-4 w-4" />
+                  All Spots
+                </Button>
+                <Button
+                  variant={typeFilter === "study" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTypeFilter("study")}
+                  className="gap-2"
+                >
+                  <BookOpen className="h-4 w-4" />
+                  Study Spots
+                </Button>
+                <Button
+                  variant={typeFilter === "dining" ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTypeFilter("dining")}
+                  className="gap-2"
+                >
+                  <UtensilsCrossed className="h-4 w-4" />
+                  Dining Halls
+                </Button>
+              </div>
+
+              {/* Sort Filter */}
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">Default</SelectItem>
+                    <SelectItem value="distance">Distance</SelectItem>
+                    <SelectItem value="crowdedness">Crowdedness</SelectItem>
+                    <SelectItem value="noise">Noise Level</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            {filteredLocations.length > 0 ? (
+            {sortedLocations.length > 0 ? (
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredLocations.map((location) => (
+                {sortedLocations.map((location) => (
                   <div key={location.id} id={`location-${location.id}`}>
                     <LocationCard
                       location={location}
@@ -594,8 +666,8 @@ const Dashboard = () => {
             
             <div className="rounded-xl border border-border bg-card p-4 shadow-card overflow-hidden">
               <StudySpotMap 
-                locations={filteredLocations}
-                events={filteredEvents}
+                locations={sortedLocations}
+                events={sortedEvents}
                 onLocationClick={(location) => {
                   const element = document.getElementById(`location-${location.id}`);
                   element?.scrollIntoView({ behavior: "smooth" });
@@ -622,19 +694,36 @@ const Dashboard = () => {
                   <h3 className="text-lg font-bold">Upcoming Events</h3>
                   <p className="text-sm text-muted-foreground">Study groups and activities</p>
                 </div>
-                <Button onClick={() => setAddEventOpen(true)} className="gap-2 sm:w-auto w-full">
-                  <Plus className="h-4 w-4" />
-                  Add Event
-                </Button>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:w-auto w-full">
+                  {/* Sort Filter */}
+                  <div className="flex items-center gap-2">
+                    <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                    <Select value={sortBy} onValueChange={(value: any) => setSortBy(value)}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Sort by" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="default">Most Popular</SelectItem>
+                        <SelectItem value="distance">Distance</SelectItem>
+                        <SelectItem value="crowdedness">Crowdedness</SelectItem>
+                        <SelectItem value="noise">Noise Level</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={() => setAddEventOpen(true)} className="gap-2 sm:w-auto w-full">
+                    <Plus className="h-4 w-4" />
+                    Add Event
+                  </Button>
+                </div>
               </div>
 
               {loading ? (
                 <div className="py-12 text-center">
                   <p className="text-muted-foreground">Loading events...</p>
                 </div>
-              ) : filteredEvents.length > 0 ? (
+              ) : sortedEvents.length > 0 ? (
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                  {filteredEvents.map((event) => (
+                  {sortedEvents.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
