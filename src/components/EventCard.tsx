@@ -36,7 +36,7 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
     : "N/A";
 
   return (
-    <Card className="group">
+    <Card className="group border-primary border-2">
       <CardHeader className="space-y-3 pb-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 space-y-1.5">

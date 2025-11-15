@@ -68,7 +68,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
 
   return (
     <Card 
-      className="overflow-hidden cursor-pointer group"
+      className="overflow-hidden cursor-pointer group border-primary border-2"
       onClick={() => onClick?.(location.id)}
     >
       <div className="p-6">
