@@ -36,11 +36,11 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
     : "N/A";
 
   return (
-    <Card className="group transition-all hover:shadow-lg">
-      <CardHeader className="space-y-3">
+    <Card className="group">
+      <CardHeader className="space-y-3 pb-4">
         <div className="flex items-start justify-between gap-2">
-          <div className="flex-1 space-y-1">
-            <h3 className="font-semibold text-foreground leading-tight">
+          <div className="flex-1 space-y-1.5">
+            <h3 className="text-lg font-bold text-foreground leading-tight tracking-tight">
               {event.name}
             </h3>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
