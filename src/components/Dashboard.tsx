@@ -60,25 +60,32 @@ const Dashboard = () => {
     try {
       const { data: ratings } = await supabase
         .from('location_crowdedness_ratings')
-        .select('location_id, rating');
+        .select('location_id, rating, noise_level');
 
       if (ratings) {
         // Calculate average ratings for each location
         const locationRatings = ratings.reduce((acc: any, rating: any) => {
           if (!acc[rating.location_id]) {
-            acc[rating.location_id] = { sum: 0, count: 0 };
+            acc[rating.location_id] = { crowdednessSum: 0, noiseSum: 0, count: 0, noiseCount: 0 };
           }
-          acc[rating.location_id].sum += rating.rating;
+          acc[rating.location_id].crowdednessSum += rating.rating;
           acc[rating.location_id].count += 1;
+          if (rating.noise_level) {
+            acc[rating.location_id].noiseSum += rating.noise_level;
+            acc[rating.location_id].noiseCount += 1;
+          }
           return acc;
         }, {});
 
-        // Update locations with crowdedness ratings
+        // Update locations with crowdedness and noise ratings
         setLocations(mockLocations.map(location => ({
           ...location,
           crowdednessRating: locationRatings[location.id] 
-            ? locationRatings[location.id].sum / locationRatings[location.id].count 
+            ? locationRatings[location.id].crowdednessSum / locationRatings[location.id].count 
             : 0,
+          noiseLevelRating: locationRatings[location.id]?.noiseCount > 0
+            ? locationRatings[location.id].noiseSum / locationRatings[location.id].noiseCount
+            : undefined,
           ratingCount: locationRatings[location.id]?.count || 0,
         })));
       }
