@@ -1,3 +1,5 @@
+import { Location } from "@/components/LocationCard";
+
 export interface SpotLocation {
   id: string;
   name: string;
@@ -8,7 +10,7 @@ export interface SpotLocation {
   };
 }
 
-export const locations: SpotLocation[] = [
+export const spotLocations: SpotLocation[] = [
   // Study Spots
   {
     id: "1",
@@ -174,3 +176,59 @@ export const locations: SpotLocation[] = [
     }
   }
 ];
+
+// Transform spotLocations to Location objects with dynamic data
+export const getLocations = (): Location[] => {
+  return spotLocations.map((spot) => {
+    // Determine if it's a dining spot or study spot based on the name
+    const isDining = spot.name.includes("Traditions") || 
+                    spot.name.includes("Juice") || 
+                    spot.name.includes("Cafe") || 
+                    spot.name.includes("Market") || 
+                    spot.name.includes("Grounds") || 
+                    spot.name.includes("Tavern") || 
+                    spot.name.includes("Diner");
+    
+    // Extract building name (first part before colon or full name)
+    const building = spot.name.includes(":") 
+      ? spot.name.split(":")[0].trim() 
+      : spot.name;
+    
+    // Extract floor/location (second part after colon or default)
+    const floor = spot.name.includes(":") 
+      ? spot.name.split(":")[1].trim() 
+      : isDining ? "Dining Hall" : "Main Floor";
+    
+    // Generate realistic dynamic occupancy (between 25-90%)
+    const occupancy = 25 + Math.floor(Math.random() * 65);
+    
+    // Determine noise level based on type and occupancy
+    let noiseLevel: "silent" | "quiet" | "moderate" | "loud";
+    if (isDining) {
+      noiseLevel = occupancy > 70 ? "loud" : "moderate";
+    } else {
+      if (occupancy < 40) noiseLevel = "silent";
+      else if (occupancy < 70) noiseLevel = "quiet";
+      else noiseLevel = "moderate";
+    }
+    
+    // Calculate available seats based on occupancy
+    const totalSeats = isDining 
+      ? (spot.name.includes("Traditions") ? 300 : 50)
+      : (spot.name.includes("Thompson") ? 150 : 60);
+    const availableSeats = Math.floor(totalSeats * (1 - occupancy / 100));
+    
+    return {
+      id: spot.id,
+      name: spot.name,
+      building,
+      floor,
+      occupancy,
+      noiseLevel,
+      lastUpdated: `${Math.floor(Math.random() * 10) + 1} min ago`,
+      availableSeats,
+      coordinates: [spot.location.longitude, spot.location.latitude] as [number, number],
+      type: isDining ? "dining" : "study"
+    };
+  });
+};
