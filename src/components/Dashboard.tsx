@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 
 const mockLocations: Location[] = [
-  // Study Spots
+  // Study Spots - North Campus
   {
     id: "1",
     name: "Thompson Library: 11th Floor",
@@ -23,7 +23,7 @@ const mockLocations: Location[] = [
     noiseLevel: "silent",
     lastUpdated: "2 min ago",
     availableSeats: 45,
-    coordinates: [-83.0298, 40.0067],
+    coordinates: [-83.0298, 40.0067], // 1858 Neil Avenue Mall - Central Campus
     type: "study",
   },
   {
@@ -35,7 +35,7 @@ const mockLocations: Location[] = [
     noiseLevel: "quiet",
     lastUpdated: "4 min ago",
     availableSeats: 75,
-    coordinates: [-83.0298, 40.0067],
+    coordinates: [-83.0298, 40.0067], // Same building - Central Campus
     type: "study",
   },
   {
@@ -47,7 +47,7 @@ const mockLocations: Location[] = [
     noiseLevel: "silent",
     lastUpdated: "3 min ago",
     availableSeats: 85,
-    coordinates: [-83.0270, 40.0080],
+    coordinates: [-83.0270, 40.0080], // 175 West 18th Avenue - North Campus
     type: "study",
   },
   {
@@ -59,7 +59,7 @@ const mockLocations: Location[] = [
     noiseLevel: "quiet",
     lastUpdated: "5 min ago",
     availableSeats: 40,
-    coordinates: [-83.0305, 40.0074],
+    coordinates: [-83.0305, 40.0074], // 174 W. 18th Ave - North Campus
     type: "study",
   },
   {
@@ -71,7 +71,7 @@ const mockLocations: Location[] = [
     noiseLevel: "moderate",
     lastUpdated: "7 min ago",
     availableSeats: 30,
-    coordinates: [-83.0310, 40.0082],
+    coordinates: [-83.0292, 40.0088], // Engineering area - North Campus
     type: "study",
   },
   {
@@ -83,7 +83,7 @@ const mockLocations: Location[] = [
     noiseLevel: "quiet",
     lastUpdated: "6 min ago",
     availableSeats: 15,
-    coordinates: [-83.0295, 40.0055],
+    coordinates: [-83.0207, 40.0005], // 2009 Millikin Road - South Campus near Stadium
     type: "study",
   },
   {
@@ -95,7 +95,7 @@ const mockLocations: Location[] = [
     noiseLevel: "quiet",
     lastUpdated: "8 min ago",
     availableSeats: 50,
-    coordinates: [-83.0318, 40.0014],
+    coordinates: [-83.0318, 40.0014], // West Campus
     type: "study",
   },
   {
@@ -107,7 +107,7 @@ const mockLocations: Location[] = [
     noiseLevel: "moderate",
     lastUpdated: "10 min ago",
     availableSeats: 25,
-    coordinates: [-83.0275, 40.0015],
+    coordinates: [-83.0285, 40.0078], // Near Thompson - Central/North Campus
     type: "study",
   },
   {
@@ -119,7 +119,7 @@ const mockLocations: Location[] = [
     noiseLevel: "silent",
     lastUpdated: "4 min ago",
     availableSeats: 35,
-    coordinates: [-83.0310, 40.0065],
+    coordinates: [-83.0305, 40.0070], // Central Campus near Oval
     type: "study",
   },
   // Dining Spots
@@ -132,7 +132,7 @@ const mockLocations: Location[] = [
     noiseLevel: "loud",
     lastUpdated: "2 min ago",
     availableSeats: 120,
-    coordinates: [-83.0285, 40.0045],
+    coordinates: [-83.0245, 40.0095], // 1989 College Road - North Campus
     type: "dining",
   },
   {
@@ -144,7 +144,7 @@ const mockLocations: Location[] = [
     noiseLevel: "loud",
     lastUpdated: "3 min ago",
     availableSeats: 95,
-    coordinates: [-83.0275, 40.0072],
+    coordinates: [-83.0230, 40.0078], // North-East Campus
     type: "dining",
   },
   {
@@ -156,7 +156,7 @@ const mockLocations: Location[] = [
     noiseLevel: "moderate",
     lastUpdated: "5 min ago",
     availableSeats: 140,
-    coordinates: [-83.0295, 40.0055],
+    coordinates: [-83.0207, 40.0005], // 2009 Millikin Road - South Campus near Stadium
     type: "dining",
   },
   {
@@ -168,7 +168,7 @@ const mockLocations: Location[] = [
     noiseLevel: "moderate",
     lastUpdated: "6 min ago",
     availableSeats: 25,
-    coordinates: [-83.0265, 39.9990],
+    coordinates: [-83.0265, 39.9990], // 337 Annie & John Glenn Ave - South Campus
     type: "dining",
   },
   {
@@ -180,7 +180,7 @@ const mockLocations: Location[] = [
     noiseLevel: "moderate",
     lastUpdated: "8 min ago",
     availableSeats: 30,
-    coordinates: [-83.0320, 40.0050],
+    coordinates: [-83.0310, 40.0060], // Central Campus
     type: "dining",
   },
   {
@@ -192,7 +192,7 @@ const mockLocations: Location[] = [
     noiseLevel: "quiet",
     lastUpdated: "4 min ago",
     availableSeats: 40,
-    coordinates: [-83.0320, 40.0050],
+    coordinates: [-83.0250, 40.0085], // North Campus
     type: "dining",
   },
   {
@@ -204,7 +204,7 @@ const mockLocations: Location[] = [
     noiseLevel: "loud",
     lastUpdated: "1 min ago",
     availableSeats: 15,
-    coordinates: [-83.0290, 40.0020],
+    coordinates: [-83.0290, 40.0020], // 1739 N High St - Central Campus
     type: "dining",
   },
   {
@@ -216,7 +216,7 @@ const mockLocations: Location[] = [
     noiseLevel: "loud",
     lastUpdated: "2 min ago",
     availableSeats: 8,
-    coordinates: [-83.0290, 40.0020],
+    coordinates: [-83.0290, 40.0020], // Ohio Union - Central Campus
     type: "dining",
   },
   {
@@ -228,7 +228,7 @@ const mockLocations: Location[] = [
     noiseLevel: "loud",
     lastUpdated: "3 min ago",
     availableSeats: 22,
-    coordinates: [-83.0290, 40.0020],
+    coordinates: [-83.0290, 40.0020], // Ohio Union - Central Campus
     type: "dining",
   },
 ];
