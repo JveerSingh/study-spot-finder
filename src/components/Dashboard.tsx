@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, Sparkles, Plus } from "lucide-react";
+import { Search, SlidersHorizontal, Sparkles, Plus, Building2, BookOpen, UtensilsCrossed } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import LocationCard, { Location } from "./LocationCard";
@@ -411,21 +411,27 @@ const Dashboard = () => {
                 variant={typeFilter === "all" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setTypeFilter("all")}
+                className="gap-2"
               >
+                <Building2 className="h-4 w-4" />
                 All Spots
               </Button>
               <Button
                 variant={typeFilter === "study" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setTypeFilter("study")}
+                className="gap-2"
               >
+                <BookOpen className="h-4 w-4" />
                 Study Spots
               </Button>
               <Button
                 variant={typeFilter === "dining" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setTypeFilter("dining")}
+                className="gap-2"
               >
+                <UtensilsCrossed className="h-4 w-4" />
                 Dining Halls
               </Button>
             </div>
@@ -458,21 +464,27 @@ const Dashboard = () => {
                 variant={typeFilter === "all" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setTypeFilter("all")}
+                className="gap-2"
               >
+                <Building2 className="h-4 w-4" />
                 All Spots
               </Button>
               <Button
                 variant={typeFilter === "study" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setTypeFilter("study")}
+                className="gap-2"
               >
+                <BookOpen className="h-4 w-4" />
                 Study Spots
               </Button>
               <Button
                 variant={typeFilter === "dining" ? "default" : "outline"}
                 size="sm"
                 onClick={() => setTypeFilter("dining")}
+                className="gap-2"
               >
+                <UtensilsCrossed className="h-4 w-4" />
                 Dining Halls
               </Button>
             </div>
