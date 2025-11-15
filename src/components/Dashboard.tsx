@@ -372,39 +372,36 @@ const Dashboard = () => {
           </p>
         </div>
 
-        {/* Search and Filters */}
-        <div className="mb-6 space-y-4">
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="relative flex-1">
+        {/* Tabs for List/Map/Events View */}
+        <Tabs defaultValue="list" className="w-full">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <TabsList className="grid w-full max-w-2xl grid-cols-3">
+              <TabsTrigger value="list">Spots</TabsTrigger>
+              <TabsTrigger value="map">Map</TabsTrigger>
+              <TabsTrigger value="events">Events</TabsTrigger>
+            </TabsList>
+            
+            <Button 
+              onClick={handleFindBestSpot}
+              className="gap-2 bg-gradient-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg"
+            >
+              <Sparkles className="h-4 w-4" />
+              Find Best Spot
+            </Button>
+          </div>
+          
+          <TabsContent value="list" className="space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                placeholder="Search buildings or locations..."
+                placeholder="Search spot names or buildings..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
-            <div className="flex gap-2">
-              <Button 
-                onClick={handleFindBestSpot}
-                className="gap-2 bg-gradient-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg"
-              >
-                <Sparkles className="h-4 w-4" />
-                Find Best Spot
-              </Button>
-            </div>
-          </div>
-        </div>
 
-        {/* Tabs for List/Map/Events View */}
-        <Tabs defaultValue="list" className="w-full">
-          <TabsList className="mb-6 grid w-full max-w-2xl grid-cols-3">
-            <TabsTrigger value="list">Spots</TabsTrigger>
-            <TabsTrigger value="map">Map</TabsTrigger>
-            <TabsTrigger value="events">Events</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="list" className="space-y-4">
             {/* Type Filter for Spots */}
             <div className="flex gap-2">
               <Button
@@ -458,6 +455,17 @@ const Dashboard = () => {
           </TabsContent>
           
           <TabsContent value="map" className="space-y-4">
+            {/* Search Bar */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search spot names or buildings..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
             {/* Type Filter for Map */}
             <div className="flex gap-2">
               <Button
@@ -501,6 +509,17 @@ const Dashboard = () => {
 
           <TabsContent value="events">
             <div className="space-y-6">
+              {/* Search Bar for Events */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search event names or locations..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
               <div className="flex justify-between items-center">
                 <div>
                   <h3 className="text-xl font-semibold">Upcoming Events</h3>
