@@ -4,6 +4,8 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import LocationCard, { Location } from "./LocationCard";
 import RatingDialog from "./RatingDialog";
+import StudySpotMap from "./StudySpotMap";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 
 const mockLocations: Location[] = [
@@ -16,6 +18,7 @@ const mockLocations: Location[] = [
     noiseLevel: "quiet",
     lastUpdated: "2 min ago",
     availableSeats: 15,
+    coordinates: [-83.0298, 40.0065],
   },
   {
     id: "2",
@@ -26,6 +29,7 @@ const mockLocations: Location[] = [
     noiseLevel: "moderate",
     lastUpdated: "5 min ago",
     availableSeats: 8,
+    coordinates: [-83.0315, 40.0078],
   },
   {
     id: "3",
@@ -36,6 +40,7 @@ const mockLocations: Location[] = [
     noiseLevel: "loud",
     lastUpdated: "1 min ago",
     availableSeats: 2,
+    coordinates: [-83.0290, 40.0020],
   },
   {
     id: "4",
@@ -46,6 +51,7 @@ const mockLocations: Location[] = [
     noiseLevel: "quiet",
     lastUpdated: "8 min ago",
     availableSeats: 12,
+    coordinates: [-83.0318, 40.0014],
   },
   {
     id: "5",
@@ -56,6 +62,7 @@ const mockLocations: Location[] = [
     noiseLevel: "silent",
     lastUpdated: "3 min ago",
     availableSeats: 20,
+    coordinates: [-83.0270, 40.0080],
   },
   {
     id: "6",
@@ -66,6 +73,7 @@ const mockLocations: Location[] = [
     noiseLevel: "moderate",
     lastUpdated: "6 min ago",
     availableSeats: 5,
+    coordinates: [-83.0305, 40.0058],
   },
 ];
 
@@ -136,25 +144,45 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Location Grid */}
-        {filteredLocations.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filteredLocations.map((location) => (
-              <div key={location.id} id={`location-${location.id}`}>
-                <LocationCard
-                  location={location}
-                  onRate={(id) => setSelectedLocationId(id)}
-                />
+        {/* Tabs for List/Map View */}
+        <Tabs defaultValue="list" className="w-full">
+          <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="list">List View</TabsTrigger>
+            <TabsTrigger value="map">Map View</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="list">
+            {filteredLocations.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredLocations.map((location) => (
+                  <div key={location.id} id={`location-${location.id}`}>
+                    <LocationCard
+                      location={location}
+                      onRate={(id) => setSelectedLocationId(id)}
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="py-12 text-center">
-            <p className="text-muted-foreground">
-              No locations found matching "{searchQuery}"
-            </p>
-          </div>
-        )}
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground">
+                  No locations found matching "{searchQuery}"
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="map">
+            <StudySpotMap 
+              locations={filteredLocations}
+              onLocationClick={(location) => {
+                toast.info(`Selected: ${location.name}`, {
+                  description: `${location.occupancy}% full, ${location.availableSeats} seats available`,
+                });
+              }}
+            />
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Rating Dialog */}

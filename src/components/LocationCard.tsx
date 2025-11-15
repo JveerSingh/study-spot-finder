@@ -16,6 +16,7 @@ export interface Location {
   noiseLevel: NoiseLevel;
   lastUpdated: string;
   availableSeats?: number;
+  coordinates?: [number, number]; // [lng, lat]
 }
 
 interface LocationCardProps {
