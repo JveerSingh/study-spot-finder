@@ -8,6 +8,7 @@ import StudySpotMap from "./StudySpotMap";
 import EventCard, { Event } from "./EventCard";
 import AddEventDialog from "./AddEventDialog";
 import EventRatingDialog from "./EventRatingDialog";
+import LocationEventsDialog from "./LocationEventsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 
@@ -83,6 +84,7 @@ const mockLocations: Location[] = [
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
+  const [selectedLocationForEvents, setSelectedLocationForEvents] = useState<string | null>(null);
   const [locations] = useState(mockLocations);
   const [events, setEvents] = useState<Event[]>([
     {
@@ -120,6 +122,15 @@ const Dashboard = () => {
     event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.locationName.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const getEventsForLocation = (locationId: string) => {
+    return events.filter((event) => event.locationId === locationId);
+  };
+
+  const selectedLocation = locations.find((l) => l.id === selectedLocationForEvents);
+  const locationEvents = selectedLocationForEvents 
+    ? getEventsForLocation(selectedLocationForEvents) 
+    : [];
 
   const handleAddEvent = (eventData: { name: string; description: string; locationId: string }) => {
     const location = locations.find((l) => l.id === eventData.locationId);
@@ -243,7 +254,9 @@ const Dashboard = () => {
                   <div key={location.id} id={`location-${location.id}`}>
                     <LocationCard
                       location={location}
+                      eventCount={getEventsForLocation(location.id).length}
                       onRate={(id) => setSelectedLocationId(id)}
+                      onClick={(id) => setSelectedLocationForEvents(id)}
                     />
                   </div>
                 ))}
@@ -307,6 +320,15 @@ const Dashboard = () => {
         locationName={
           locations.find((l) => l.id === selectedLocationId)?.name || ""
         }
+      />
+
+      {/* Location Events Dialog */}
+      <LocationEventsDialog
+        open={selectedLocationForEvents !== null}
+        onOpenChange={(open) => !open && setSelectedLocationForEvents(null)}
+        locationName={selectedLocation?.name || ""}
+        events={locationEvents}
+        onRateEvent={handleRateEvent}
       />
 
       {/* Add Event Dialog */}
