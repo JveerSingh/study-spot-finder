@@ -68,15 +68,15 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
 
   return (
     <Card 
-      className="overflow-hidden transition-all hover:shadow-md cursor-pointer"
+      className="overflow-hidden cursor-pointer group"
       onClick={() => onClick?.(location.id)}
     >
-      <div className="p-5">
-        <div className="mb-4 flex items-start justify-between">
+      <div className="p-6">
+        <div className="mb-5 flex items-start justify-between">
           <div className="flex-1">
-            <div className="mb-1 flex items-center gap-2">
-              <LocationTypeIcon className={`h-4 w-4 ${iconColor}`} />
-              <h3 className="text-lg font-semibold text-foreground">
+            <div className="mb-1.5 flex items-center gap-2.5">
+              <LocationTypeIcon className={`h-5 w-5 ${iconColor}`} />
+              <h3 className="text-xl font-bold text-foreground tracking-tight">
                 {location.name}
               </h3>
             </div>
