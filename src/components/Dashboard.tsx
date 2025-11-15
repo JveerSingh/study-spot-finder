@@ -1,10 +1,13 @@
 import { useState } from "react";
-import { Search, SlidersHorizontal, Sparkles } from "lucide-react";
+import { Search, SlidersHorizontal, Sparkles, Plus } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import LocationCard, { Location } from "./LocationCard";
 import RatingDialog from "./RatingDialog";
 import StudySpotMap from "./StudySpotMap";
+import EventCard, { Event } from "./EventCard";
+import AddEventDialog from "./AddEventDialog";
+import EventRatingDialog from "./EventRatingDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 
@@ -81,11 +84,92 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [locations] = useState(mockLocations);
+  const [events, setEvents] = useState<Event[]>([
+    {
+      id: "1",
+      name: "Calculus Study Group",
+      description: "Working through homework problems for Math 1151. All welcome!",
+      locationId: "1",
+      locationName: "Thompson Library - 3rd Floor",
+      timestamp: "Today at 3:00 PM",
+      ratings: [5, 4, 5],
+      crowdednessRatings: [3, 2, 3],
+    },
+    {
+      id: "2",
+      name: "CS Midterm Review",
+      description: "Reviewing for CSE 2221 midterm exam. Bring your notes!",
+      locationId: "2",
+      locationName: "Science & Engineering Library - 2nd Floor",
+      timestamp: "Today at 5:30 PM",
+      ratings: [4, 5, 4, 5],
+      crowdednessRatings: [4, 4, 5],
+    },
+  ]);
+  const [addEventOpen, setAddEventOpen] = useState(false);
+  const [eventRatingDialogOpen, setEventRatingDialogOpen] = useState(false);
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [ratingType, setRatingType] = useState<'event' | 'crowdedness'>('event');
 
   const filteredLocations = locations.filter((location) =>
     location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     location.building.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const filteredEvents = events.filter((event) =>
+    event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    event.locationName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const handleAddEvent = (eventData: { name: string; description: string; locationId: string }) => {
+    const location = locations.find((l) => l.id === eventData.locationId);
+    if (!location) return;
+
+    const newEvent: Event = {
+      id: String(events.length + 1),
+      name: eventData.name,
+      description: eventData.description,
+      locationId: eventData.locationId,
+      locationName: location.name,
+      timestamp: "Just now",
+      ratings: [],
+      crowdednessRatings: [],
+    };
+
+    setEvents([...events, newEvent]);
+    toast.success("Event created!", {
+      description: `${eventData.name} at ${location.name}`,
+    });
+  };
+
+  const handleRateEvent = (eventId: string, type: 'event' | 'crowdedness') => {
+    setSelectedEventId(eventId);
+    setRatingType(type);
+    setEventRatingDialogOpen(true);
+  };
+
+  const handleSubmitEventRating = (rating: number) => {
+    if (!selectedEventId) return;
+
+    setEvents(events.map((event) => {
+      if (event.id === selectedEventId) {
+        if (ratingType === 'event') {
+          return { ...event, ratings: [...event.ratings, rating] };
+        } else {
+          return { ...event, crowdednessRatings: [...event.crowdednessRatings, rating] };
+        }
+      }
+      return event;
+    }));
+
+    const event = events.find((e) => e.id === selectedEventId);
+    toast.success(
+      `${ratingType === 'event' ? 'Event' : 'Crowdedness'} rating submitted!`,
+      {
+        description: event?.name,
+      }
+    );
+  };
 
   const handleFindBestSpot = () => {
     const bestSpot = [...locations].sort((a, b) => {
@@ -144,11 +228,12 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Tabs for List/Map View */}
+        {/* Tabs for List/Map/Events View */}
         <Tabs defaultValue="list" className="w-full">
-          <TabsList className="mb-6 grid w-full max-w-md grid-cols-2">
+          <TabsList className="mb-6 grid w-full max-w-2xl grid-cols-3">
             <TabsTrigger value="list">List View</TabsTrigger>
             <TabsTrigger value="map">Map View</TabsTrigger>
+            <TabsTrigger value="events">Events</TabsTrigger>
           </TabsList>
           
           <TabsContent value="list">
@@ -182,6 +267,36 @@ const Dashboard = () => {
               }}
             />
           </TabsContent>
+
+          <TabsContent value="events">
+            <div className="mb-4 flex justify-end">
+              <Button
+                onClick={() => setAddEventOpen(true)}
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Add Event
+              </Button>
+            </div>
+
+            {filteredEvents.length > 0 ? (
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredEvents.map((event) => (
+                  <EventCard
+                    key={event.id}
+                    event={event}
+                    onRate={handleRateEvent}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center">
+                <p className="text-muted-foreground">
+                  {searchQuery ? `No events found matching "${searchQuery}"` : "No events yet. Be the first to add one!"}
+                </p>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
       </div>
 
@@ -192,6 +307,23 @@ const Dashboard = () => {
         locationName={
           locations.find((l) => l.id === selectedLocationId)?.name || ""
         }
+      />
+
+      {/* Add Event Dialog */}
+      <AddEventDialog
+        open={addEventOpen}
+        onOpenChange={setAddEventOpen}
+        locations={locations}
+        onAddEvent={handleAddEvent}
+      />
+
+      {/* Event Rating Dialog */}
+      <EventRatingDialog
+        open={eventRatingDialogOpen}
+        onOpenChange={setEventRatingDialogOpen}
+        eventName={events.find((e) => e.id === selectedEventId)?.name || ""}
+        ratingType={ratingType}
+        onSubmit={handleSubmitEventRating}
       />
     </section>
   );
