@@ -156,6 +156,7 @@ export type Database = {
           created_at: string | null
           id: string
           location_id: string
+          noise_level: number | null
           rating: number
           updated_at: string | null
           user_id: string
@@ -164,6 +165,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           location_id: string
+          noise_level?: number | null
           rating: number
           updated_at?: string | null
           user_id: string
@@ -172,6 +174,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           location_id?: string
+          noise_level?: number | null
           rating?: number
           updated_at?: string | null
           user_id?: string

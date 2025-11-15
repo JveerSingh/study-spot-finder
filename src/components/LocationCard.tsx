@@ -22,6 +22,7 @@ export interface Location {
   longitude?: number;
   crowdednessRating?: number; // Average crowdedness rating 1-10
   ratingCount?: number; // Number of ratings
+  noiseLevelRating?: number; // Average noise level rating 1-10
 }
 
 interface LocationCardProps {
@@ -61,6 +62,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
   const crowdednessRating = location.crowdednessRating || 0;
   const crowdednessColor = getCrowdednessColor(crowdednessRating);
   const noiseColor = getNoiseColor(location.noiseLevel);
+  const noiseLevelRating = location.noiseLevelRating || 0;
   const LocationTypeIcon = location.type === "dining" ? UtensilsCrossed : BookOpen;
   const iconColor = location.type === "dining" ? "text-warning" : "text-primary";
 
@@ -123,23 +125,42 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
           </div>
 
           {/* Noise Level */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Volume2 className="h-4 w-4" />
-              <span>Noise Level</span>
+          <div>
+            <div className="mb-1 flex items-center justify-between text-sm">
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Volume2 className="h-4 w-4" />
+                <span>Noise Level</span>
+              </div>
+              {noiseLevelRating > 0 && (
+                <span className="text-sm font-semibold text-foreground">
+                  {noiseLevelRating.toFixed(1)}/10
+                </span>
+              )}
             </div>
-            <Badge 
-              variant="outline"
-              className={
-                noiseColor === "success"
-                  ? "border-success text-success"
-                  : noiseColor === "warning"
-                  ? "border-warning text-warning"
-                  : "border-destructive text-destructive"
-              }
-            >
-              {getNoiseLabel(location.noiseLevel)}
-            </Badge>
+            {noiseLevelRating > 0 ? (
+              <Progress 
+                value={noiseLevelRating * 10} 
+                className="h-2"
+                indicatorClassName={
+                  noiseLevelRating <= 3 ? "bg-success" :
+                  noiseLevelRating <= 6 ? "bg-warning" :
+                  "bg-red-500"
+                }
+              />
+            ) : (
+              <Badge 
+                variant="outline"
+                className={
+                  noiseColor === "success"
+                    ? "border-success text-success"
+                    : noiseColor === "warning"
+                    ? "border-warning text-warning"
+                    : "border-destructive text-destructive"
+                }
+              >
+                {getNoiseLabel(location.noiseLevel)}
+              </Badge>
+            )}
           </div>
 
           {/* Last Updated */}

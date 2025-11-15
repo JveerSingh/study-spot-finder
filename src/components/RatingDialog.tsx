@@ -21,6 +21,7 @@ interface RatingDialogProps {
 
 const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDialogProps) => {
   const [crowdedness, setCrowdedness] = useState<number>(5);
+  const [noiseLevel, setNoiseLevel] = useState<number>(5);
 
   const handleSubmit = async () => {
     try {
@@ -36,6 +37,7 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
           location_id: locationId,
           user_id: user.id,
           rating: crowdedness,
+          noise_level: noiseLevel,
         });
 
       if (error) throw error;
@@ -46,6 +48,7 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
 
       // Reset and close
       setCrowdedness(5);
+      setNoiseLevel(5);
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting rating:', error);
@@ -63,22 +66,45 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="flex items-center justify-between">
-            <Label className="text-base font-medium">Crowdedness Level</Label>
-            <span className="text-2xl font-bold text-primary">{crowdedness}</span>
+        <div className="space-y-6 py-4">
+          {/* Crowdedness Rating */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Crowdedness Level</Label>
+              <span className="text-2xl font-bold text-primary">{crowdedness}</span>
+            </div>
+            <Slider
+              value={[crowdedness]}
+              onValueChange={(value) => setCrowdedness(value[0])}
+              min={1}
+              max={10}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Empty</span>
+              <span>Very Crowded</span>
+            </div>
           </div>
-          <Slider
-            value={[crowdedness]}
-            onValueChange={(value) => setCrowdedness(value[0])}
-            min={1}
-            max={10}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>Empty</span>
-            <span>Very Crowded</span>
+
+          {/* Noise Level Rating */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base font-medium">Noise Level</Label>
+              <span className="text-2xl font-bold text-primary">{noiseLevel}</span>
+            </div>
+            <Slider
+              value={[noiseLevel]}
+              onValueChange={(value) => setNoiseLevel(value[0])}
+              min={1}
+              max={10}
+              step={1}
+              className="w-full"
+            />
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>Silent</span>
+              <span>Very Loud</span>
+            </div>
           </div>
         </div>
 
@@ -89,6 +115,7 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
             className="flex-1"
             onClick={() => {
               setCrowdedness(5);
+              setNoiseLevel(5);
               onOpenChange(false);
             }}
           >
