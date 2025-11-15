@@ -62,15 +62,49 @@ const StudySpotMap = ({ locations, events = [], onLocationClick, onEventClick }:
         el.style.backgroundColor = 'hsl(var(--primary))';
       }
 
+      const crowdednessRating = location.crowdednessRating || 0;
+      const noiseLevelRating = location.noiseLevelRating || 0;
+      const crowdednessColor = crowdednessRating <= 3 ? '#10b981' : crowdednessRating <= 6 ? '#f59e0b' : '#ef4444';
+      const noiseLabels: Record<string, string> = {
+        silent: 'Silent',
+        quiet: 'Quiet',
+        moderate: 'Moderate',
+        loud: 'Loud'
+      };
+      const noiseColors: Record<string, string> = {
+        silent: '#10b981',
+        quiet: '#10b981',
+        moderate: '#f59e0b',
+        loud: '#ef4444'
+      };
+
       const marker = new mapboxgl.Marker(el)
         .setLngLat(location.coordinates)
         .setPopup(
           new mapboxgl.Popup({ offset: 25 })
             .setHTML(`
-              <div style="padding: 8px;">
-                <h3 style="font-weight: bold; margin-bottom: 4px;">${location.name}</h3>
-                <p style="font-size: 14px; color: #666; margin-bottom: 4px;">${location.occupancy}% full</p>
-                <p style="font-size: 14px; color: #666;">${location.noiseLevel} • ${location.availableSeats} seats</p>
+              <div style="padding: 12px; min-width: 200px;">
+                <h3 style="font-weight: bold; margin-bottom: 12px; font-size: 15px;">${location.name}</h3>
+                
+                <div style="margin-bottom: 10px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 13px; color: #666;">Crowdedness</span>
+                    <span style="font-size: 12px; font-weight: 600; color: ${crowdednessColor};">${crowdednessRating}/10</span>
+                  </div>
+                  <div style="height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
+                    <div style="height: 100%; width: ${crowdednessRating * 10}%; background: ${crowdednessColor}; transition: width 0.3s;"></div>
+                  </div>
+                </div>
+
+                <div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                    <span style="font-size: 13px; color: #666;">Noise Level</span>
+                    <span style="font-size: 12px; font-weight: 600; color: ${noiseColors[location.noiseLevel]};">${noiseLabels[location.noiseLevel]}</span>
+                  </div>
+                  <div style="height: 6px; background: #e5e7eb; border-radius: 3px; overflow: hidden;">
+                    <div style="height: 100%; width: ${noiseLevelRating * 10}%; background: ${noiseColors[location.noiseLevel]}; transition: width 0.3s;"></div>
+                  </div>
+                </div>
               </div>
             `)
         )
