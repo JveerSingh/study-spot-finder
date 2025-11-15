@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, Plus, Building2, BookOpen, UtensilsCrossed } from "lucide-react";
+import { Search, Plus, Building2, BookOpen, UtensilsCrossed, Map, Calendar } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import LocationCard, { Location } from "./LocationCard";
@@ -37,7 +37,7 @@ const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [selectedLocationForEvents, setSelectedLocationForEvents] = useState<string | null>(null);
-  const [locations] = useState(mockLocations);
+  const [locations, setLocations] = useState(mockLocations);
   const [events, setEvents] = useState<Event[]>([]);
   const [addEventOpen, setAddEventOpen] = useState(false);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
@@ -51,6 +51,62 @@ const Dashboard = () => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setCurrentUserId(user?.id || null);
     });
+    
+    // Fetch crowdedness ratings for locations
+    fetchLocationRatings();
+  }, []);
+
+  const fetchLocationRatings = async () => {
+    try {
+      const { data: ratings } = await supabase
+        .from('location_crowdedness_ratings')
+        .select('location_id, rating');
+
+      if (ratings) {
+        // Calculate average ratings for each location
+        const locationRatings = ratings.reduce((acc: any, rating: any) => {
+          if (!acc[rating.location_id]) {
+            acc[rating.location_id] = { sum: 0, count: 0 };
+          }
+          acc[rating.location_id].sum += rating.rating;
+          acc[rating.location_id].count += 1;
+          return acc;
+        }, {});
+
+        // Update locations with crowdedness ratings
+        setLocations(mockLocations.map(location => ({
+          ...location,
+          crowdednessRating: locationRatings[location.id] 
+            ? locationRatings[location.id].sum / locationRatings[location.id].count 
+            : 0,
+          ratingCount: locationRatings[location.id]?.count || 0,
+        })));
+      }
+    } catch (error) {
+      console.error('Error fetching location ratings:', error);
+    }
+  };
+
+  // Set up realtime subscription for location ratings
+  useEffect(() => {
+    const channel = supabase
+      .channel('location-ratings-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'location_crowdedness_ratings'
+        },
+        () => {
+          fetchLocationRatings();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Fetch events from database
@@ -376,9 +432,18 @@ const Dashboard = () => {
         <Tabs defaultValue="list" className="w-full">
           <div className="mb-6">
             <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="list">Spots</TabsTrigger>
-              <TabsTrigger value="map">Map</TabsTrigger>
-              <TabsTrigger value="events">Events</TabsTrigger>
+              <TabsTrigger value="list" className="gap-2">
+                <Building2 className="h-4 w-4" />
+                Spots
+              </TabsTrigger>
+              <TabsTrigger value="map" className="gap-2">
+                <Map className="h-4 w-4" />
+                Map
+              </TabsTrigger>
+              <TabsTrigger value="events" className="gap-2">
+                <Calendar className="h-4 w-4" />
+                Events
+              </TabsTrigger>
             </TabsList>
           </div>
           
@@ -553,6 +618,7 @@ const Dashboard = () => {
           open={selectedLocationId !== null}
           onOpenChange={(open) => !open && setSelectedLocationId(null)}
           locationName={locations.find(l => l.id === selectedLocationId)?.name || ""}
+          locationId={selectedLocationId || ""}
         />
 
         <AddEventDialog

@@ -20,6 +20,8 @@ export interface Location {
   type?: "study" | "dining";
   latitude?: number;
   longitude?: number;
+  crowdednessRating?: number; // Average crowdedness rating 1-10
+  ratingCount?: number; // Number of ratings
 }
 
 interface LocationCardProps {
@@ -29,9 +31,9 @@ interface LocationCardProps {
   onClick?: (locationId: string) => void;
 }
 
-const getOccupancyColor = (occupancy: number) => {
-  if (occupancy < 40) return "success";
-  if (occupancy < 70) return "warning";
+const getCrowdednessColor = (rating: number) => {
+  if (rating <= 3) return "success";
+  if (rating <= 6) return "warning";
   return "destructive";
 };
 
@@ -56,7 +58,8 @@ const getNoiseLabel = (level: NoiseLevel) => {
 };
 
 const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCardProps) => {
-  const occupancyColor = getOccupancyColor(location.occupancy);
+  const crowdednessRating = location.crowdednessRating || 0;
+  const crowdednessColor = getCrowdednessColor(crowdednessRating);
   const noiseColor = getNoiseColor(location.noiseLevel);
   const LocationTypeIcon = location.type === "dining" ? UtensilsCrossed : BookOpen;
   const iconColor = location.type === "dining" ? "text-warning" : "text-primary";
@@ -81,35 +84,35 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
             </div>
           </div>
           <Badge 
-            variant={occupancyColor === "success" ? "default" : "secondary"}
+            variant={crowdednessColor === "success" ? "default" : "secondary"}
             className={
-              occupancyColor === "success" 
+              crowdednessColor === "success" 
                 ? "bg-success text-success-foreground"
-                : occupancyColor === "warning"
+                : crowdednessColor === "warning"
                 ? "bg-warning text-warning-foreground"
                 : "bg-destructive text-destructive-foreground"
             }
           >
-            {location.occupancy}% Full
+            {crowdednessRating > 0 ? `${crowdednessRating.toFixed(1)}/10` : "No ratings"}
           </Badge>
         </div>
 
         <div className="mb-4 space-y-3">
-          {/* Occupancy Progress */}
+          {/* Crowdedness Meter */}
           <div>
             <div className="mb-1 flex items-center justify-between text-sm">
               <div className="flex items-center gap-1.5 text-muted-foreground">
                 <Users className="h-4 w-4" />
-                <span>Occupancy</span>
+                <span>Crowdedness</span>
               </div>
-              {location.availableSeats && (
+              {location.ratingCount && location.ratingCount > 0 && (
                 <span className="text-xs text-muted-foreground">
-                  ~{location.availableSeats} seats left
+                  {location.ratingCount} rating{location.ratingCount !== 1 ? 's' : ''}
                 </span>
               )}
             </div>
             <Progress 
-              value={location.occupancy} 
+              value={crowdednessRating * 10} 
               className="h-2"
             />
           </div>
