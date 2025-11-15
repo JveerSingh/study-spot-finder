@@ -45,12 +45,28 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [typeFilter, setTypeFilter] = useState<"all" | "study" | "dining">("all");
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
   useEffect(() => {
     // Get current user
     supabase.auth.getUser().then(({ data: { user } }) => {
       setCurrentUserId(user?.id || null);
     });
+    
+    // Get user's current location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.log("Location access denied or unavailable:", error);
+        }
+      );
+    }
     
     // Fetch crowdedness ratings for locations
     fetchLocationRatings();
@@ -77,17 +93,24 @@ const Dashboard = () => {
           return acc;
         }, {});
 
-        // Update locations with crowdedness and noise ratings
-        setLocations(mockLocations.map(location => ({
-          ...location,
-          crowdednessRating: locationRatings[location.id] 
-            ? locationRatings[location.id].crowdednessSum / locationRatings[location.id].count 
-            : 0,
-          noiseLevelRating: locationRatings[location.id]?.noiseCount > 0
-            ? locationRatings[location.id].noiseSum / locationRatings[location.id].noiseCount
-            : undefined,
-          ratingCount: locationRatings[location.id]?.count || 0,
-        })));
+        // Update locations with crowdedness, noise ratings, and distance
+        setLocations(mockLocations.map(location => {
+          const distance = userLocation && location.latitude && location.longitude
+            ? calculateDistance(userLocation.latitude, userLocation.longitude, location.latitude, location.longitude)
+            : undefined;
+          
+          return {
+            ...location,
+            crowdednessRating: locationRatings[location.id] 
+              ? locationRatings[location.id].crowdednessSum / locationRatings[location.id].count 
+              : 0,
+            noiseLevelRating: locationRatings[location.id]?.noiseCount > 0
+              ? locationRatings[location.id].noiseSum / locationRatings[location.id].noiseCount
+              : undefined,
+            ratingCount: locationRatings[location.id]?.count || 0,
+            distance,
+          };
+        }));
       }
     } catch (error) {
       console.error('Error fetching location ratings:', error);
@@ -114,7 +137,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userLocation]);
 
   // Fetch events from database
   useEffect(() => {
@@ -161,7 +184,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [currentUserId]);
+  }, [currentUserId, userLocation]);
 
   const fetchEvents = async () => {
     try {
@@ -191,6 +214,11 @@ const Dashboard = () => {
 
             const timestamp = new Date(event.created_at).toLocaleString();
 
+            // Calculate distance if user location is available
+            const distance = userLocation && event.latitude && event.longitude
+              ? calculateDistance(userLocation.latitude, userLocation.longitude, event.latitude, event.longitude)
+              : undefined;
+
             return {
               id: event.id,
               name: event.name,
@@ -203,6 +231,9 @@ const Dashboard = () => {
               crowdednessRatings: ratings?.map(r => r.crowdedness_rating).filter(r => r !== null) as number[] || [],
               noiseLevelRatings: ratings?.map(r => r.noise_level_rating).filter(r => r !== null) as number[] || [],
               funLevelRatings: ratings?.map(r => r.fun_level_rating).filter(r => r !== null) as number[] || [],
+              latitude: event.latitude,
+              longitude: event.longitude,
+              distance,
             };
           })
         );
