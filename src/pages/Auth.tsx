@@ -7,9 +7,12 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 
-const emailSchema = z.string().email().refine((email) => email.endsWith("@osu.edu"), {
-  message: "Only OSU buckeyemail addresses (@osu.edu) are allowed",
-});
+const emailSchema = z.string().email().refine(
+  (email) => email.endsWith("@osu.edu") || email.endsWith("@buckeyemail.osu.edu"),
+  {
+    message: "Only OSU email addresses (@osu.edu or @buckeyemail.osu.edu) are allowed",
+  }
+);
 
 const passwordSchema = z.string().min(6, "Password must be at least 6 characters");
 
@@ -100,7 +103,7 @@ const Auth = () => {
             {isLogin ? "Sign In" : "Create Account"}
           </h2>
           <p className="mt-2 text-muted-foreground">
-            Only OSU buckeyemail addresses are allowed
+            Only OSU email addresses (@osu.edu or @buckeyemail.osu.edu) are allowed
           </p>
         </div>
 
