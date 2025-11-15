@@ -57,6 +57,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
   const occupancyColor = getOccupancyColor(location.occupancy);
   const noiseColor = getNoiseColor(location.noiseLevel);
   const LocationTypeIcon = location.type === "dining" ? UtensilsCrossed : BookOpen;
+  const iconColor = location.type === "dining" ? "text-warning" : "text-primary";
 
   return (
     <Card 
@@ -67,7 +68,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
         <div className="mb-4 flex items-start justify-between">
           <div className="flex-1">
             <div className="mb-1 flex items-center gap-2">
-              <LocationTypeIcon className="h-4 w-4 text-primary" />
+              <LocationTypeIcon className={`h-4 w-4 ${iconColor}`} />
               <h3 className="text-lg font-semibold text-foreground">
                 {location.name}
               </h3>
