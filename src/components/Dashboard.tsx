@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, SlidersHorizontal, Sparkles, Plus, Building2, BookOpen, UtensilsCrossed } from "lucide-react";
+import { Search, Plus, Building2, BookOpen, UtensilsCrossed } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import LocationCard, { Location } from "./LocationCard";
@@ -374,20 +374,12 @@ const Dashboard = () => {
 
         {/* Tabs for List/Map/Events View */}
         <Tabs defaultValue="list" className="w-full">
-          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <TabsList className="grid w-full max-w-2xl grid-cols-3">
+          <div className="mb-6">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="list">Spots</TabsTrigger>
               <TabsTrigger value="map">Map</TabsTrigger>
               <TabsTrigger value="events">Events</TabsTrigger>
             </TabsList>
-            
-            <Button 
-              onClick={handleFindBestSpot}
-              className="gap-2 bg-gradient-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg"
-            >
-              <Sparkles className="h-4 w-4" />
-              Find Best Spot
-            </Button>
           </div>
           
           <TabsContent value="list" className="space-y-4">
