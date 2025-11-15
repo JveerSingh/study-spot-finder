@@ -1,4 +1,4 @@
-import { MapPin, Volume2, Users, Clock, Calendar } from "lucide-react";
+import { MapPin, Volume2, Users, Clock, Calendar, BookOpen, UtensilsCrossed } from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -17,6 +17,7 @@ export interface Location {
   lastUpdated: string;
   availableSeats?: number;
   coordinates?: [number, number]; // [lng, lat]
+  type?: "study" | "dining";
 }
 
 interface LocationCardProps {
@@ -55,6 +56,7 @@ const getNoiseLabel = (level: NoiseLevel) => {
 const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCardProps) => {
   const occupancyColor = getOccupancyColor(location.occupancy);
   const noiseColor = getNoiseColor(location.noiseLevel);
+  const LocationTypeIcon = location.type === "dining" ? UtensilsCrossed : BookOpen;
 
   return (
     <Card 
@@ -64,9 +66,12 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
       <div className="p-5">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex-1">
-            <h3 className="mb-1 text-lg font-semibold text-foreground">
-              {location.name}
-            </h3>
+            <div className="mb-1 flex items-center gap-2">
+              <LocationTypeIcon className="h-4 w-4 text-primary" />
+              <h3 className="text-lg font-semibold text-foreground">
+                {location.name}
+              </h3>
+            </div>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
               <MapPin className="h-3.5 w-3.5" />
               <span>{location.building} - {location.floor}</span>

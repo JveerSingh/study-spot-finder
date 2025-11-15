@@ -23,6 +23,7 @@ const mockLocations: Location[] = [
     lastUpdated: "2 min ago",
     availableSeats: 15,
     coordinates: [-83.0298, 40.0065],
+    type: "study",
   },
   {
     id: "2",
@@ -34,6 +35,7 @@ const mockLocations: Location[] = [
     lastUpdated: "5 min ago",
     availableSeats: 8,
     coordinates: [-83.0315, 40.0078],
+    type: "study",
   },
   {
     id: "3",
@@ -45,6 +47,7 @@ const mockLocations: Location[] = [
     lastUpdated: "1 min ago",
     availableSeats: 2,
     coordinates: [-83.0290, 40.0020],
+    type: "study",
   },
   {
     id: "4",
@@ -56,6 +59,7 @@ const mockLocations: Location[] = [
     lastUpdated: "8 min ago",
     availableSeats: 12,
     coordinates: [-83.0318, 40.0014],
+    type: "study",
   },
   {
     id: "5",
@@ -67,6 +71,7 @@ const mockLocations: Location[] = [
     lastUpdated: "3 min ago",
     availableSeats: 20,
     coordinates: [-83.0270, 40.0080],
+    type: "study",
   },
   {
     id: "6",
@@ -78,6 +83,7 @@ const mockLocations: Location[] = [
     lastUpdated: "6 min ago",
     availableSeats: 5,
     coordinates: [-83.0305, 40.0058],
+    type: "study",
   },
   {
     id: "7",
@@ -89,6 +95,7 @@ const mockLocations: Location[] = [
     lastUpdated: "4 min ago",
     availableSeats: 25,
     coordinates: [-83.0285, 40.0045],
+    type: "dining",
   },
   {
     id: "8",
@@ -100,6 +107,7 @@ const mockLocations: Location[] = [
     lastUpdated: "2 min ago",
     availableSeats: 12,
     coordinates: [-83.0275, 40.0072],
+    type: "dining",
   },
   {
     id: "9",
@@ -111,6 +119,7 @@ const mockLocations: Location[] = [
     lastUpdated: "7 min ago",
     availableSeats: 30,
     coordinates: [-83.0320, 40.0050],
+    type: "dining",
   },
   {
     id: "10",
@@ -122,6 +131,7 @@ const mockLocations: Location[] = [
     lastUpdated: "5 min ago",
     availableSeats: 22,
     coordinates: [-83.0260, 40.0038],
+    type: "dining",
   },
   {
     id: "11",
@@ -133,6 +143,7 @@ const mockLocations: Location[] = [
     lastUpdated: "3 min ago",
     availableSeats: 35,
     coordinates: [-83.0295, 40.0055],
+    type: "dining",
   },
 ];
 
