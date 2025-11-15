@@ -22,12 +22,12 @@ const StudySpotMap = ({ locations, events = [], onLocationClick, onEventClick }:
     if (!mapContainer.current) return;
 
     mapboxgl.accessToken = MAPBOX_TOKEN;
-    // Center on OSU campus
+    // Center on OSU campus to show all locations from north to south campus
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
-      center: [-83.0302, 40.0067], // OSU coordinates
-      zoom: 15,
+      center: [-83.0270, 40.0050], // OSU campus center
+      zoom: 14,
     });
 
     map.current.addControl(
