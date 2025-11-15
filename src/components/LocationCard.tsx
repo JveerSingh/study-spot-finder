@@ -67,6 +67,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
   const noiseLevelRating = location.noiseLevelRating || 0;
   const LocationTypeIcon = location.type === "dining" ? UtensilsCrossed : BookOpen;
   const iconColor = location.type === "dining" ? "text-warning" : "text-primary";
+  const totalRating = 10.0 - (crowdednessRating + noiseLevelRating) / 2.0;
 
   // Format distance
   const formatDistance = (meters?: number) => {
@@ -79,7 +80,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
   };
 
   return (
-    <Card 
+    <Card
       className="overflow-hidden cursor-pointer border-primary/20 hover:border-primary/40"
       onClick={() => onClick?.(location.id)}
     >
@@ -103,16 +104,16 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
               )}
             </div>
           </div>
-          <Badge 
+          <Badge
             variant="outline"
             className={cn(
               "flex-shrink-0 font-semibold",
-              crowdednessRating <= 3 && "border-success text-success bg-success/10",
-              crowdednessRating > 3 && crowdednessRating <= 6 && "border-warning text-warning bg-warning/10",
-              crowdednessRating > 6 && "border-destructive text-destructive bg-destructive/10"
+              totalRating <= 3 && "border-destructive text-destructive bg-destructive/10",
+              totalRating > 3 && totalRating <= 6 && "border-warning text-warning bg-warning/10",
+              totalRating > 6 && "border-success text-success bg-success/10"
             )}
           >
-            {crowdednessRating > 0 ? `${crowdednessRating.toFixed(1)}/10` : "No ratings"}
+            {totalRating > 0 ? `${totalRating.toFixed(1)}/10` : "No ratings"}
           </Badge>
         </div>
 
@@ -130,8 +131,8 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
                 </span>
               )}
             </div>
-            <Progress 
-              value={crowdednessRating * 10} 
+            <Progress
+              value={crowdednessRating * 10}
               className="h-2"
               indicatorClassName={cn(
                 crowdednessRating <= 3 && "bg-success",
@@ -155,8 +156,8 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
               )}
             </div>
             {noiseLevelRating > 0 ? (
-              <Progress 
-                value={noiseLevelRating * 10} 
+              <Progress
+                value={noiseLevelRating * 10}
                 className="h-2"
                 indicatorClassName={cn(
                   noiseLevelRating <= 3 && "bg-success",
@@ -165,7 +166,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
                 )}
               />
             ) : (
-              <Badge 
+              <Badge
                 variant="outline"
                 className={cn(
                   "w-fit text-xs",
@@ -193,12 +194,12 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
           </div>
         )}
 
-        <Button 
+        <Button
           onClick={(e) => {
             e.stopPropagation();
             onRate(location.id);
           }}
-          variant="outline" 
+          variant="outline"
           className="w-full"
           size="sm"
         >

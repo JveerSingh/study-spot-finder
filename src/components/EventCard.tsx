@@ -30,7 +30,7 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
   const avgCrowdedness = event.crowdednessRatings.length > 0
     ? (event.crowdednessRatings.reduce((a, b) => a + b, 0) / event.crowdednessRatings.length).toFixed(1)
     : "N/A";
-  
+
   const avgNoiseLevel = event.noiseLevelRatings.length > 0
     ? (event.noiseLevelRatings.reduce((a, b) => a + b, 0) / event.noiseLevelRatings.length).toFixed(1)
     : "N/A";
@@ -69,7 +69,7 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
             </div>
           </div>
         </div>
-        
+
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
           {event.description}
         </p>
@@ -87,8 +87,8 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
             <span className="font-medium">{event.checkInCount} here</span>
           </Badge>
           {event.crowdednessRatings.length > 0 && (
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn(
                 "flex items-center gap-1",
                 parseFloat(avgCrowdedness) <= 3 && "border-success text-success bg-success/10",
@@ -97,12 +97,13 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
               )}
             >
               <Users className="h-3 w-3" />
+              Crowd
               <span className="font-medium">{avgCrowdedness}</span>
             </Badge>
           )}
           {event.noiseLevelRatings.length > 0 && (
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn(
                 "flex items-center gap-1",
                 parseFloat(avgNoiseLevel) <= 3 && "border-success text-success bg-success/10",
@@ -111,12 +112,19 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
               )}
             >
               <Volume2 className="h-3 w-3" />
+              Noise
               <span className="font-medium">{avgNoiseLevel}</span>
             </Badge>
           )}
           {event.funLevelRatings.length > 0 && (
-            <Badge variant="outline" className="flex items-center gap-1 bg-accent">
+            <Badge variant="outline" className={cn(
+              "flex items-center gap-1",
+              parseFloat(avgNoiseLevel) <= 3 && "border-destructive text-destructive bg-destructive/10",
+              parseFloat(avgNoiseLevel) > 3 && parseFloat(avgNoiseLevel) <= 6 && "border-warning text-warning bg-warning/10",
+              parseFloat(avgNoiseLevel) > 6 && "border-success text-success bg-success/10" 
+            )}>
               <PartyPopper className="h-3 w-3" />
+              Fun
               <span className="font-medium">{avgFunLevel}</span>
             </Badge>
           )}

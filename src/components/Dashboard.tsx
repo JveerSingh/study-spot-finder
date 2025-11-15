@@ -467,9 +467,9 @@ const Dashboard = () => {
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <h2 className="mb-1 text-2xl font-bold text-foreground">Find a spot on campus</h2>
+          <h2 className="mb-1 text-2xl font-bold text-foreground">Find your place on campus</h2>
           <p className="text-sm text-muted-foreground">
-            Real-time availability across campus
+            Real-time availability across OSU
           </p>
         </div>
 
