@@ -114,6 +114,11 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
             <Progress 
               value={crowdednessRating * 10} 
               className="h-2"
+              indicatorClassName={
+                crowdednessColor === "success" ? "bg-success" :
+                crowdednessColor === "warning" ? "bg-warning" :
+                "bg-red-500"
+              }
             />
           </div>
 
