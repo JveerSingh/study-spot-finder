@@ -55,13 +55,11 @@ const StudySpotMap = ({ locations, events = [], onLocationClick, onEventClick }:
       el.style.border = '3px solid white';
       el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
       
-      // Color based on occupancy
-      if (location.occupancy < 50) {
-        el.style.backgroundColor = 'hsl(var(--success))';
-      } else if (location.occupancy < 75) {
+      // Color based on location type
+      if (location.type === 'dining') {
         el.style.backgroundColor = 'hsl(var(--warning))';
       } else {
-        el.style.backgroundColor = 'hsl(var(--destructive))';
+        el.style.backgroundColor = 'hsl(var(--primary))';
       }
 
       const marker = new mapboxgl.Marker(el)
