@@ -1,28 +1,24 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Location } from './LocationCard';
-import { Input } from './ui/input';
-import { Button } from './ui/button';
-import { MapPin } from 'lucide-react';
 
 interface StudySpotMapProps {
   locations: Location[];
   onLocationClick?: (location: Location) => void;
 }
 
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiZGh3YW5pdDEwIiwiYSI6ImNtaTBoY2h3cjA3YjcyaXExd2hvcXpsenYifQ.gtR2uQQrt2va150pCARd9Q';
+
 const StudySpotMap = ({ locations, onLocationClick }: StudySpotMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markers = useRef<mapboxgl.Marker[]>([]);
-  const [mapboxToken, setMapboxToken] = useState('');
-  const [tokenSubmitted, setTokenSubmitted] = useState(false);
 
-  const initializeMap = () => {
-    if (!mapContainer.current || !mapboxToken) return;
+  useEffect(() => {
+    if (!mapContainer.current) return;
 
-    mapboxgl.accessToken = mapboxToken;
-    
+    mapboxgl.accessToken = MAPBOX_TOKEN;
     // Center on OSU campus
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -86,40 +82,11 @@ const StudySpotMap = ({ locations, onLocationClick }: StudySpotMapProps) => {
       markers.current.push(marker);
     });
 
-    setTokenSubmitted(true);
-  };
-
-  useEffect(() => {
     return () => {
       markers.current.forEach(marker => marker.remove());
       map.current?.remove();
     };
-  }, []);
-
-  if (!tokenSubmitted) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card p-8 text-center">
-        <MapPin className="mb-4 h-12 w-12 text-muted-foreground" />
-        <h3 className="mb-2 text-xl font-semibold text-foreground">Enter Mapbox Token</h3>
-        <p className="mb-6 text-sm text-muted-foreground max-w-md">
-          To display the map, please enter your Mapbox public token. 
-          Get one free at <a href="https://mapbox.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">mapbox.com</a>
-        </p>
-        <div className="flex w-full max-w-md gap-2">
-          <Input
-            type="text"
-            placeholder="pk.eyJ1..."
-            value={mapboxToken}
-            onChange={(e) => setMapboxToken(e.target.value)}
-            className="flex-1"
-          />
-          <Button onClick={initializeMap} disabled={!mapboxToken}>
-            Load Map
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  }, [locations, onLocationClick]);
 
   return (
     <div className="relative h-[600px] w-full rounded-lg overflow-hidden border border-border">
