@@ -273,9 +273,15 @@ const Dashboard = () => {
           <TabsContent value="map">
             <StudySpotMap 
               locations={filteredLocations}
+              events={filteredEvents}
               onLocationClick={(location) => {
                 toast.info(`Selected: ${location.name}`, {
                   description: `${location.occupancy}% full, ${location.availableSeats} seats available`,
+                });
+              }}
+              onEventClick={(event) => {
+                toast.info(`Event: ${event.name}`, {
+                  description: `At ${event.locationName}`,
                 });
               }}
             />
