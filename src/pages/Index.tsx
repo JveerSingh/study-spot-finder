@@ -57,11 +57,11 @@ const Index = () => {
     <div className="min-h-screen">
       <header className="sticky top-0 z-50 w-full border-b border-border bg-primary/95 backdrop-blur supports-[backdrop-filter]:bg-primary/95">
         <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-          <h1 className="text-2xl font-bold text-primary-foreground tracking-tight">OSU Spots</h1>
-          <Button 
-            variant="outline" 
-            onClick={handleSignOut} 
-            size="sm" 
+          <h1 className="text-2xl font-bold text-primary-foreground tracking-tight" style={{ width: "100%", display: "flex", justifyContent: "center" }}>CampusFlow</h1>
+          <Button
+            variant="outline"
+            onClick={handleSignOut}
+            size="sm"
             className="border-primary-foreground/20 bg-background/90 text-foreground hover:bg-background hover:border-primary-foreground/30"
           >
             Sign Out

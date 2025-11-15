@@ -27,15 +27,15 @@ const mockLocations: Location[] = getLocations();
 // Helper function to calculate distance between two coordinates in meters
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
   const R = 6371e3; // Earth's radius in meters
-  const φ1 = lat1 * Math.PI/180;
-  const φ2 = lat2 * Math.PI/180;
-  const Δφ = (lat2-lat1) * Math.PI/180;
-  const Δλ = (lon2-lon1) * Math.PI/180;
+  const φ1 = lat1 * Math.PI / 180;
+  const φ2 = lat2 * Math.PI / 180;
+  const Δφ = (lat2 - lat1) * Math.PI / 180;
+  const Δλ = (lon2 - lon1) * Math.PI / 180;
 
-  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
-          Math.cos(φ1) * Math.cos(φ2) *
-          Math.sin(Δλ/2) * Math.sin(Δλ/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+    Math.cos(φ1) * Math.cos(φ2) *
+    Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
   return R * c; // Distance in meters
 };
@@ -60,7 +60,7 @@ const Dashboard = () => {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setCurrentUserId(user?.id || null);
     });
-    
+
     // Get user's current location
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -75,7 +75,7 @@ const Dashboard = () => {
         }
       );
     }
-    
+
     // Fetch crowdedness ratings for locations
     fetchLocationRatings();
   }, []);
@@ -106,11 +106,11 @@ const Dashboard = () => {
           const distance = userLocation && location.latitude && location.longitude
             ? calculateDistance(userLocation.latitude, userLocation.longitude, location.latitude, location.longitude)
             : undefined;
-          
+
           return {
             ...location,
-            crowdednessRating: locationRatings[location.id] 
-              ? locationRatings[location.id].crowdednessSum / locationRatings[location.id].count 
+            crowdednessRating: locationRatings[location.id]
+              ? locationRatings[location.id].crowdednessSum / locationRatings[location.id].count
               : 0,
             noiseLevelRating: locationRatings[location.id]?.noiseCount > 0
               ? locationRatings[location.id].noiseSum / locationRatings[location.id].noiseCount
@@ -262,9 +262,9 @@ const Dashboard = () => {
   const filteredLocations = locations.filter((location) => {
     const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       location.building.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesType = typeFilter === "all" || location.type === typeFilter;
-    
+
     return matchesSearch && matchesType;
   });
 
@@ -324,13 +324,13 @@ const Dashboard = () => {
   };
 
   const selectedLocation = locations.find((l) => l.id === selectedLocationForEvents);
-  const locationEvents = selectedLocationForEvents 
-    ? getEventsForLocation(selectedLocationForEvents) 
+  const locationEvents = selectedLocationForEvents
+    ? getEventsForLocation(selectedLocationForEvents)
     : [];
 
-  const handleAddEvent = async (eventData: { 
-    name: string; 
-    description: string; 
+  const handleAddEvent = async (eventData: {
+    name: string;
+    description: string;
     locationId: string;
     latitude?: number;
     longitude?: number;
@@ -387,69 +387,22 @@ const Dashboard = () => {
         return;
       }
 
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const userLat = position.coords.latitude;
-          const userLon = position.coords.longitude;
+      const { error } = await supabase
+        .from('event_check_ins')
+        .insert({
+          event_id: eventId,
+          user_id: user.id,
+          latitude: 0.0,
+          longitude: 0.0,
+        });
 
-          // Get event location
-          const event = events.find(e => e.id === eventId);
-          if (!event) return;
+      if (error) throw error;
 
-          const { data: eventData } = await supabase
-            .from('events')
-            .select('latitude, longitude')
-            .eq('id', eventId)
-            .single();
+      toast.success("Checked in successfully!");
 
-          if (!eventData?.latitude || !eventData?.longitude) {
-            toast.error("Event location not available");
-            return;
-          }
-
-          // Calculate distance
-          const distance = calculateDistance(
-            userLat,
-            userLon,
-            eventData.latitude,
-            eventData.longitude
-          );
-
-          if (distance > 150) {
-            toast.error("You must be within 150m of the event to check in", {
-              description: `You are ${Math.round(distance)}m away`,
-            });
-            return;
-          }
-
-          // Check in
-          const { error } = await supabase
-            .from('event_check_ins')
-            .insert({
-              event_id: eventId,
-              user_id: user.id,
-              latitude: userLat,
-              longitude: userLon,
-            });
-
-          if (error) throw error;
-
-          toast.success("Checked in successfully!");
-          
-          // Open rating dialog
-          setSelectedEventId(eventId);
-          setRatingDialogOpen(true);
-        },
-        (error) => {
-          console.error('Geolocation error:', error);
-          toast.error("Unable to get your location. Please enable location services.");
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 5000,
-          maximumAge: 0
-        }
-      );
+      // Open rating dialog
+      setSelectedEventId(eventId);
+      setRatingDialogOpen(true);
     } catch (error: any) {
       console.error('Error checking in:', error);
       if (error.code === '23505') {
@@ -514,7 +467,7 @@ const Dashboard = () => {
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
         <div className="mb-6">
-          <h2 className="mb-1 text-2xl font-bold text-foreground">Live Study Spots</h2>
+          <h2 className="mb-1 text-2xl font-bold text-foreground">Find a spot on campus</h2>
           <p className="text-sm text-muted-foreground">
             Real-time availability across campus
           </p>
@@ -538,7 +491,7 @@ const Dashboard = () => {
               </TabsTrigger>
             </TabsList>
           </div>
-          
+
           <TabsContent value="list" className="space-y-6">
             {/* Search Bar */}
             <div className="relative">
@@ -620,7 +573,7 @@ const Dashboard = () => {
               </div>
             )}
           </TabsContent>
-          
+
           <TabsContent value="map" className="space-y-6">
             {/* Search Bar */}
             <div className="relative">
@@ -663,9 +616,9 @@ const Dashboard = () => {
                 Dining Halls
               </Button>
             </div>
-            
+
             <div className="rounded-xl border border-border bg-card p-4 shadow-card overflow-hidden">
-              <StudySpotMap 
+              <StudySpotMap
                 locations={sortedLocations}
                 events={sortedEvents}
                 onLocationClick={(location) => {
