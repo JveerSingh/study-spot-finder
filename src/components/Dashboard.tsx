@@ -428,9 +428,9 @@ const Dashboard = () => {
     <section className="py-12 px-4">
       <div className="container mx-auto max-w-7xl">
         {/* Header */}
-        <div className="mb-8">
-          <h2 className="mb-2 text-3xl font-bold text-foreground">Live Study Spots</h2>
-          <p className="text-muted-foreground">
+        <div className="mb-6">
+          <h2 className="mb-1 text-2xl font-bold text-foreground">Live Study Spots</h2>
+          <p className="text-sm text-muted-foreground">
             Real-time availability across campus
           </p>
         </div>
@@ -454,20 +454,20 @@ const Dashboard = () => {
             </TabsList>
           </div>
           
-          <TabsContent value="list" className="space-y-4">
+          <TabsContent value="list" className="space-y-6">
             {/* Search Bar */}
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 placeholder="Search spot names or buildings..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-base shadow-soft"
+                className="pl-10"
               />
             </div>
 
             {/* Type Filter for Spots */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant={typeFilter === "all" ? "default" : "outline"}
                 size="sm"
@@ -497,7 +497,7 @@ const Dashboard = () => {
               </Button>
             </div>
             {filteredLocations.length > 0 ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredLocations.map((location) => (
                   <div key={location.id} id={`location-${location.id}`}>
                     <LocationCard
@@ -518,7 +518,7 @@ const Dashboard = () => {
             )}
           </TabsContent>
           
-          <TabsContent value="map" className="space-y-4">
+          <TabsContent value="map" className="space-y-6">
             {/* Search Bar */}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -531,7 +531,7 @@ const Dashboard = () => {
             </div>
 
             {/* Type Filter for Map */}
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant={typeFilter === "all" ? "default" : "outline"}
                 size="sm"
@@ -561,14 +561,16 @@ const Dashboard = () => {
               </Button>
             </div>
             
-            <StudySpotMap 
-              locations={filteredLocations}
-              events={filteredEvents}
-              onLocationClick={(location) => {
-                const element = document.getElementById(`location-${location.id}`);
-                element?.scrollIntoView({ behavior: "smooth" });
-              }}
-            />
+            <div className="rounded-xl border border-border bg-card p-4 shadow-card overflow-hidden">
+              <StudySpotMap 
+                locations={filteredLocations}
+                events={filteredEvents}
+                onLocationClick={(location) => {
+                  const element = document.getElementById(`location-${location.id}`);
+                  element?.scrollIntoView({ behavior: "smooth" });
+                }}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value="events">
@@ -584,12 +586,12 @@ const Dashboard = () => {
                 />
               </div>
 
-              <div className="flex justify-between items-center">
+              <div className="flex flex-col gap-4 sm:flex-row sm:justify-between sm:items-center">
                 <div>
-                  <h3 className="text-xl font-semibold">Upcoming Events</h3>
+                  <h3 className="text-lg font-bold">Upcoming Events</h3>
                   <p className="text-sm text-muted-foreground">Study groups and activities</p>
                 </div>
-                <Button onClick={() => setAddEventOpen(true)} className="gap-2">
+                <Button onClick={() => setAddEventOpen(true)} className="gap-2 sm:w-auto w-full">
                   <Plus className="h-4 w-4" />
                   Add Event
                 </Button>
@@ -600,7 +602,7 @@ const Dashboard = () => {
                   <p className="text-muted-foreground">Loading events...</p>
                 </div>
               ) : filteredEvents.length > 0 ? (
-                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {filteredEvents.map((event) => (
                     <EventCard
                       key={event.id}
