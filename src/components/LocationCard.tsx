@@ -18,6 +18,8 @@ export interface Location {
   availableSeats?: number;
   coordinates?: [number, number]; // [lng, lat]
   type?: "study" | "dining";
+  latitude?: number;
+  longitude?: number;
 }
 
 interface LocationCardProps {

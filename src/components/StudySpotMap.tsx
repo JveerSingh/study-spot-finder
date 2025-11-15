@@ -106,13 +106,7 @@ const StudySpotMap = ({ locations, events = [], onLocationClick, onEventClick }:
       el.style.boxShadow = '0 3px 12px rgba(0,0,0,0.3)';
       el.innerHTML = '📅';
 
-      const avgRating = event.ratings.length > 0
-        ? (event.ratings.reduce((a, b) => a + b, 0) / event.ratings.length).toFixed(1)
-        : "N/A";
-      
-      const avgCrowdedness = event.crowdednessRatings.length > 0
-        ? (event.crowdednessRatings.reduce((a, b) => a + b, 0) / event.crowdednessRatings.length).toFixed(1)
-        : "N/A";
+      const checkInCount = event.checkInCount || 0;
 
       const marker = new mapboxgl.Marker(el)
         .setLngLat(location.coordinates)
@@ -133,12 +127,8 @@ const StudySpotMap = ({ locations, events = [], onLocationClick, onEventClick }:
                 </div>
                 <div style="display: flex; gap: 12px; font-size: 13px; margin-bottom: 6px;">
                   <div style="display: flex; align-items: center; gap: 4px;">
-                    <span>⭐</span>
-                    <span><strong>${avgRating}</strong> (${event.ratings.length})</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 4px;">
-                    <span>👥</span>
-                    <span><strong>${avgCrowdedness}</strong> (${event.crowdednessRatings.length})</span>
+                    <span>✅</span>
+                    <span><strong>${checkInCount}</strong> checked in</span>
                   </div>
                 </div>
                 <p style="font-size: 12px; color: #999; margin: 0;">🕐 ${event.timestamp}</p>

@@ -14,38 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
-      event_crowdedness_ratings: {
+      event_check_ins: {
         Row: {
           created_at: string | null
           event_id: string
           id: string
-          rating: number
+          latitude: number
+          longitude: number
           user_id: string
         }
         Insert: {
           created_at?: string | null
           event_id: string
           id?: string
-          rating: number
+          latitude: number
+          longitude: number
           user_id: string
         }
         Update: {
           created_at?: string | null
           event_id?: string
           id?: string
-          rating?: number
+          latitude?: number
+          longitude?: number
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "event_crowdedness_ratings_event_id_fkey"
+            foreignKeyName: "event_check_ins_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "event_crowdedness_ratings_user_id_fkey"
+            foreignKeyName: "event_check_ins_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -53,38 +56,47 @@ export type Database = {
           },
         ]
       }
-      event_ratings: {
+      event_comprehensive_ratings: {
         Row: {
           created_at: string | null
+          crowdedness_rating: number | null
           event_id: string
+          fun_level_rating: number | null
           id: string
-          rating: number
+          noise_level_rating: number | null
+          updated_at: string | null
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          crowdedness_rating?: number | null
           event_id: string
+          fun_level_rating?: number | null
           id?: string
-          rating: number
+          noise_level_rating?: number | null
+          updated_at?: string | null
           user_id: string
         }
         Update: {
           created_at?: string | null
+          crowdedness_rating?: number | null
           event_id?: string
+          fun_level_rating?: number | null
           id?: string
-          rating?: number
+          noise_level_rating?: number | null
+          updated_at?: string | null
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "event_ratings_event_id_fkey"
+            foreignKeyName: "event_comprehensive_ratings_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "event_ratings_user_id_fkey"
+            foreignKeyName: "event_comprehensive_ratings_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -98,8 +110,10 @@ export type Database = {
           created_by: string
           description: string
           id: string
+          latitude: number | null
           location_id: string
           location_name: string
+          longitude: number | null
           name: string
           updated_at: string | null
         }
@@ -108,8 +122,10 @@ export type Database = {
           created_by: string
           description: string
           id?: string
+          latitude?: number | null
           location_id: string
           location_name: string
+          longitude?: number | null
           name: string
           updated_at?: string | null
         }
@@ -118,8 +134,10 @@ export type Database = {
           created_by?: string
           description?: string
           id?: string
+          latitude?: number | null
           location_id?: string
           location_name?: string
+          longitude?: number | null
           name?: string
           updated_at?: string | null
         }

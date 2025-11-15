@@ -12,17 +12,17 @@ import { MapPin } from "lucide-react";
 interface LocationEventsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  locationName: string;
+  location?: { name: string };
   events: Event[];
-  onRateEvent: (eventId: string, type: 'event' | 'crowdedness') => void;
+  onCheckIn: (eventId: string) => void;
 }
 
 const LocationEventsDialog = ({ 
   open, 
   onOpenChange, 
-  locationName,
+  location,
   events,
-  onRateEvent
+  onCheckIn
 }: LocationEventsDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -30,7 +30,7 @@ const LocationEventsDialog = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <MapPin className="h-5 w-5" />
-            Events at {locationName}
+            Events at {location?.name}
           </DialogTitle>
           <DialogDescription>
             {events.length === 0 
@@ -46,7 +46,7 @@ const LocationEventsDialog = ({
               <EventCard
                 key={event.id}
                 event={event}
-                onRate={onRateEvent}
+                onCheckIn={onCheckIn}
               />
             ))}
           </div>
