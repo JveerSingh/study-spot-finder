@@ -44,6 +44,7 @@ const Dashboard = () => {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [typeFilter, setTypeFilter] = useState<"all" | "study" | "dining">("all");
 
   useEffect(() => {
     // Get current user
@@ -156,10 +157,14 @@ const Dashboard = () => {
     }
   };
 
-  const filteredLocations = locations.filter((location) =>
-    location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    location.building.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredLocations = locations.filter((location) => {
+    const matchesSearch = location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      location.building.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesType = typeFilter === "all" || location.type === typeFilter;
+    
+    return matchesSearch && matchesType;
+  });
 
   const filteredEvents = events.filter((event) =>
     event.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -368,28 +373,26 @@ const Dashboard = () => {
         </div>
 
         {/* Search and Filters */}
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search buildings or locations..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" className="gap-2">
-              <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Filters</span>
-            </Button>
-            <Button 
-              onClick={handleFindBestSpot}
-              className="gap-2 bg-gradient-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg"
-            >
-              <Sparkles className="h-4 w-4" />
-              Find Best Spot
-            </Button>
+        <div className="mb-6 space-y-4">
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                placeholder="Search buildings or locations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button 
+                onClick={handleFindBestSpot}
+                className="gap-2 bg-gradient-to-r from-primary to-secondary text-white shadow-md hover:shadow-lg"
+              >
+                <Sparkles className="h-4 w-4" />
+                Find Best Spot
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -401,7 +404,31 @@ const Dashboard = () => {
             <TabsTrigger value="events">Events</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="list">
+          <TabsContent value="list" className="space-y-4">
+            {/* Type Filter for Spots */}
+            <div className="flex gap-2">
+              <Button
+                variant={typeFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTypeFilter("all")}
+              >
+                All Spots
+              </Button>
+              <Button
+                variant={typeFilter === "study" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTypeFilter("study")}
+              >
+                Study Spots
+              </Button>
+              <Button
+                variant={typeFilter === "dining" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTypeFilter("dining")}
+              >
+                Dining Halls
+              </Button>
+            </div>
             {filteredLocations.length > 0 ? (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredLocations.map((location) => (
@@ -424,7 +451,32 @@ const Dashboard = () => {
             )}
           </TabsContent>
           
-          <TabsContent value="map">
+          <TabsContent value="map" className="space-y-4">
+            {/* Type Filter for Map */}
+            <div className="flex gap-2">
+              <Button
+                variant={typeFilter === "all" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTypeFilter("all")}
+              >
+                All Spots
+              </Button>
+              <Button
+                variant={typeFilter === "study" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTypeFilter("study")}
+              >
+                Study Spots
+              </Button>
+              <Button
+                variant={typeFilter === "dining" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setTypeFilter("dining")}
+              >
+                Dining Halls
+              </Button>
+            </div>
+            
             <StudySpotMap 
               locations={filteredLocations}
               events={filteredEvents}
