@@ -1,4 +1,4 @@
-import { Calendar, MapPin, Star, Users } from "lucide-react";
+import { Calendar, MapPin, Star, Users, Volume2, PartyPopper, Check } from "lucide-react";
 import { Card, CardContent, CardHeader } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -10,22 +10,29 @@ export interface Event {
   locationId: string;
   locationName: string;
   timestamp: string;
-  ratings: number[];
+  checkInCount: number;
+  isCheckedIn: boolean;
   crowdednessRatings: number[];
+  noiseLevelRatings: number[];
+  funLevelRatings: number[];
 }
 
 interface EventCardProps {
   event: Event;
-  onRate: (id: string, type: 'event' | 'crowdedness') => void;
+  onCheckIn: (id: string) => void;
 }
 
-const EventCard = ({ event, onRate }: EventCardProps) => {
-  const avgRating = event.ratings.length > 0
-    ? (event.ratings.reduce((a, b) => a + b, 0) / event.ratings.length).toFixed(1)
-    : "N/A";
-  
+const EventCard = ({ event, onCheckIn }: EventCardProps) => {
   const avgCrowdedness = event.crowdednessRatings.length > 0
     ? (event.crowdednessRatings.reduce((a, b) => a + b, 0) / event.crowdednessRatings.length).toFixed(1)
+    : "N/A";
+  
+  const avgNoiseLevel = event.noiseLevelRatings.length > 0
+    ? (event.noiseLevelRatings.reduce((a, b) => a + b, 0) / event.noiseLevelRatings.length).toFixed(1)
+    : "N/A";
+
+  const avgFunLevel = event.funLevelRatings.length > 0
+    ? (event.funLevelRatings.reduce((a, b) => a + b, 0) / event.funLevelRatings.length).toFixed(1)
     : "N/A";
 
   return (
@@ -54,35 +61,47 @@ const EventCard = ({ event, onRate }: EventCardProps) => {
       </CardHeader>
 
       <CardContent className="space-y-3">
-        <div className="flex gap-2">
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Star className="h-3 w-3" />
-            {avgRating} ({event.ratings.length})
+        <div className="flex flex-wrap gap-2">
+          <Badge variant="secondary" className="flex items-center gap-1">
+            <Check className="h-3 w-3" />
+            {event.checkInCount} here
           </Badge>
-          <Badge variant="outline" className="flex items-center gap-1">
-            <Users className="h-3 w-3" />
-            {avgCrowdedness} ({event.crowdednessRatings.length})
-          </Badge>
+          {event.crowdednessRatings.length > 0 && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Users className="h-3 w-3" />
+              {avgCrowdedness}
+            </Badge>
+          )}
+          {event.noiseLevelRatings.length > 0 && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <Volume2 className="h-3 w-3" />
+              {avgNoiseLevel}
+            </Badge>
+          )}
+          {event.funLevelRatings.length > 0 && (
+            <Badge variant="outline" className="flex items-center gap-1">
+              <PartyPopper className="h-3 w-3" />
+              {avgFunLevel}
+            </Badge>
+          )}
         </div>
 
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onRate(event.id, 'event')}
-          >
-            Rate Event
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onRate(event.id, 'crowdedness')}
-          >
-            Rate Crowdedness
-          </Button>
-        </div>
+        <Button
+          variant={event.isCheckedIn ? "secondary" : "default"}
+          size="sm"
+          className="w-full"
+          onClick={() => onCheckIn(event.id)}
+          disabled={event.isCheckedIn}
+        >
+          {event.isCheckedIn ? (
+            <>
+              <Check className="h-4 w-4 mr-2" />
+              Checked In
+            </>
+          ) : (
+            "I'm Here - Check In"
+          )}
+        </Button>
       </CardContent>
     </Card>
   );

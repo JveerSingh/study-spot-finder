@@ -7,15 +7,31 @@ import RatingDialog from "./RatingDialog";
 import StudySpotMap from "./StudySpotMap";
 import EventCard, { Event } from "./EventCard";
 import AddEventDialog from "./AddEventDialog";
-import EventRatingDialog from "./EventRatingDialog";
+import ComprehensiveEventRating from "./ComprehensiveEventRating";
 import LocationEventsDialog from "./LocationEventsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
-import { getLocations } from "@/data/locations";
+import { getLocations, spotLocations } from "@/data/locations";
 import { supabase } from "@/integrations/supabase/client";
 
 // Get locations from centralized data source
 const mockLocations: Location[] = getLocations();
+
+// Helper function to calculate distance between two coordinates in meters
+const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = lat1 * Math.PI/180;
+  const φ2 = lat2 * Math.PI/180;
+  const Δφ = (lat2-lat1) * Math.PI/180;
+  const Δλ = (lon2-lon1) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+  return R * c; // Distance in meters
+};
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -24,10 +40,17 @@ const Dashboard = () => {
   const [locations] = useState(mockLocations);
   const [events, setEvents] = useState<Event[]>([]);
   const [addEventOpen, setAddEventOpen] = useState(false);
-  const [eventRatingDialogOpen, setEventRatingDialogOpen] = useState(false);
+  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
-  const [ratingType, setRatingType] = useState<'event' | 'crowdedness'>('event');
   const [loading, setLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Get current user
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUserId(user?.id || null);
+    });
+  }, []);
 
   // Fetch events from database
   useEffect(() => {
@@ -52,7 +75,7 @@ const Dashboard = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'event_ratings'
+          table: 'event_check_ins'
         },
         () => {
           fetchEvents();
@@ -63,7 +86,7 @@ const Dashboard = () => {
         {
           event: '*',
           schema: 'public',
-          table: 'event_crowdedness_ratings'
+          table: 'event_comprehensive_ratings'
         },
         () => {
           fetchEvents();
@@ -74,7 +97,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [currentUserId]);
 
   const fetchEvents = async () => {
     try {
@@ -86,16 +109,20 @@ const Dashboard = () => {
       if (eventsError) throw eventsError;
 
       if (eventsData) {
-        const eventsWithRatings = await Promise.all(
+        const eventsWithData = await Promise.all(
           eventsData.map(async (event) => {
-            const { data: ratings } = await supabase
-              .from('event_ratings')
-              .select('rating')
+            // Fetch check-ins
+            const { data: checkIns, count: checkInCount } = await supabase
+              .from('event_check_ins')
+              .select('*', { count: 'exact' })
               .eq('event_id', event.id);
 
-            const { data: crowdednessRatings } = await supabase
-              .from('event_crowdedness_ratings')
-              .select('rating')
+            const isCheckedIn = checkIns?.some(ci => ci.user_id === currentUserId) || false;
+
+            // Fetch ratings
+            const { data: ratings } = await supabase
+              .from('event_comprehensive_ratings')
+              .select('*')
               .eq('event_id', event.id);
 
             const timestamp = new Date(event.created_at).toLocaleString();
@@ -107,13 +134,19 @@ const Dashboard = () => {
               locationId: event.location_id,
               locationName: event.location_name,
               timestamp,
-              ratings: ratings?.map(r => r.rating) || [],
-              crowdednessRatings: crowdednessRatings?.map(r => r.rating) || [],
+              checkInCount: checkInCount || 0,
+              isCheckedIn,
+              crowdednessRatings: ratings?.map(r => r.crowdedness_rating).filter(r => r !== null) as number[] || [],
+              noiseLevelRatings: ratings?.map(r => r.noise_level_rating).filter(r => r !== null) as number[] || [],
+              funLevelRatings: ratings?.map(r => r.fun_level_rating).filter(r => r !== null) as number[] || [],
             };
           })
         );
 
-        setEvents(eventsWithRatings);
+        // Sort events by check-in count (most verified first)
+        eventsWithData.sort((a, b) => b.checkInCount - a.checkInCount);
+
+        setEvents(eventsWithData);
       }
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -142,9 +175,20 @@ const Dashboard = () => {
     ? getEventsForLocation(selectedLocationForEvents) 
     : [];
 
-  const handleAddEvent = async (eventData: { name: string; description: string; locationId: string }) => {
+  const handleAddEvent = async (eventData: { 
+    name: string; 
+    description: string; 
+    locationId: string;
+    latitude?: number;
+    longitude?: number;
+  }) => {
     const location = locations.find((l) => l.id === eventData.locationId);
     if (!location) return;
+
+    // Get location coordinates from spotLocations
+    const spotLocation = spotLocations.find(sl => sl.id === eventData.locationId);
+    const latitude = spotLocation?.location.latitude;
+    const longitude = spotLocation?.location.longitude;
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -161,6 +205,8 @@ const Dashboard = () => {
           location_id: eventData.locationId,
           location_name: location.name,
           created_by: user.id,
+          latitude,
+          longitude,
         });
 
       if (error) throw error;
@@ -174,44 +220,117 @@ const Dashboard = () => {
     }
   };
 
-  const handleRateEvent = (eventId: string, type: 'event' | 'crowdedness') => {
-    setSelectedEventId(eventId);
-    setRatingType(type);
-    setEventRatingDialogOpen(true);
-  };
-
-  const handleSubmitEventRating = async (rating: number) => {
-    if (!selectedEventId) return;
-
+  const handleCheckIn = async (eventId: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("You must be logged in to rate");
+        toast.error("You must be logged in to check in");
         return;
       }
 
-      const table = ratingType === 'event' ? 'event_ratings' : 'event_crowdedness_ratings';
-      
+      // Get user's current location
+      if (!navigator.geolocation) {
+        toast.error("Geolocation is not supported by your browser");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const userLat = position.coords.latitude;
+          const userLon = position.coords.longitude;
+
+          // Get event location
+          const event = events.find(e => e.id === eventId);
+          if (!event) return;
+
+          const { data: eventData } = await supabase
+            .from('events')
+            .select('latitude, longitude')
+            .eq('id', eventId)
+            .single();
+
+          if (!eventData?.latitude || !eventData?.longitude) {
+            toast.error("Event location not available");
+            return;
+          }
+
+          // Calculate distance
+          const distance = calculateDistance(
+            userLat,
+            userLon,
+            eventData.latitude,
+            eventData.longitude
+          );
+
+          if (distance > 150) {
+            toast.error("You must be within 150m of the event to check in", {
+              description: `You are ${Math.round(distance)}m away`,
+            });
+            return;
+          }
+
+          // Check in
+          const { error } = await supabase
+            .from('event_check_ins')
+            .insert({
+              event_id: eventId,
+              user_id: user.id,
+              latitude: userLat,
+              longitude: userLon,
+            });
+
+          if (error) throw error;
+
+          toast.success("Checked in successfully!");
+          
+          // Open rating dialog
+          setSelectedEventId(eventId);
+          setRatingDialogOpen(true);
+        },
+        (error) => {
+          console.error('Geolocation error:', error);
+          toast.error("Unable to get your location. Please enable location services.");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0
+        }
+      );
+    } catch (error: any) {
+      console.error('Error checking in:', error);
+      if (error.code === '23505') {
+        toast.error("You've already checked in to this event");
+      } else {
+        toast.error("Failed to check in");
+      }
+    }
+  };
+
+  const handleSubmitRating = async (ratings: {
+    crowdedness?: number;
+    noiseLevel?: number;
+    funLevel?: number;
+  }) => {
+    if (!selectedEventId || !currentUserId) return;
+
+    try {
       const { error } = await supabase
-        .from(table)
+        .from('event_comprehensive_ratings')
         .upsert({
           event_id: selectedEventId,
-          user_id: user.id,
-          rating,
+          user_id: currentUserId,
+          crowdedness_rating: ratings.crowdedness || null,
+          noise_level_rating: ratings.noiseLevel || null,
+          fun_level_rating: ratings.funLevel || null,
         });
 
       if (error) throw error;
 
-      const event = events.find((e) => e.id === selectedEventId);
-      toast.success(
-        `${ratingType === 'event' ? 'Event' : 'Crowdedness'} rating submitted!`,
-        {
-          description: event ? `for ${event.name}` : undefined,
-        }
-      );
+      toast.success("Ratings submitted!");
     } catch (error) {
-      console.error('Error submitting rating:', error);
-      toast.error("Failed to submit rating");
+      console.error('Error submitting ratings:', error);
+      toast.error("Failed to submit ratings");
     }
   };
 
@@ -234,6 +353,8 @@ const Dashboard = () => {
     const element = document.getElementById(`location-${bestSpot.id}`);
     element?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
+
+  const selectedEvent = events.find(e => e.id === selectedEventId);
 
   return (
     <section className="py-12 px-4">
@@ -308,84 +429,79 @@ const Dashboard = () => {
               locations={filteredLocations}
               events={filteredEvents}
               onLocationClick={(location) => {
-                toast.info(`Selected: ${location.name}`, {
-                  description: `${location.occupancy}% full, ${location.availableSeats} seats available`,
-                });
-              }}
-              onEventClick={(event) => {
-                toast.info(`Event: ${event.name}`, {
-                  description: `At ${event.locationName}`,
-                });
+                const element = document.getElementById(`location-${location.id}`);
+                element?.scrollIntoView({ behavior: "smooth" });
               }}
             />
           </TabsContent>
 
           <TabsContent value="events">
-            <div className="mb-4 flex justify-end">
-              <Button
-                onClick={() => setAddEventOpen(true)}
-                className="gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Add Event
-              </Button>
-            </div>
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-semibold">Upcoming Events</h3>
+                  <p className="text-sm text-muted-foreground">Study groups and activities</p>
+                </div>
+                <Button onClick={() => setAddEventOpen(true)} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Add Event
+                </Button>
+              </div>
 
-            {filteredEvents.length > 0 ? (
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredEvents.map((event) => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    onRate={handleRateEvent}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="py-12 text-center">
-                <p className="text-muted-foreground">
-                  {searchQuery ? `No events found matching "${searchQuery}"` : "No events yet. Be the first to add one!"}
-                </p>
-              </div>
-            )}
+              {loading ? (
+                <div className="py-12 text-center">
+                  <p className="text-muted-foreground">Loading events...</p>
+                </div>
+              ) : filteredEvents.length > 0 ? (
+                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredEvents.map((event) => (
+                    <EventCard
+                      key={event.id}
+                      event={event}
+                      onCheckIn={handleCheckIn}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-12 text-center">
+                  <p className="text-muted-foreground">
+                    No events found. Create one to get started!
+                  </p>
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
+
+        {/* Dialogs */}
+        <RatingDialog
+          open={selectedLocationId !== null}
+          onOpenChange={(open) => !open && setSelectedLocationId(null)}
+          locationName={locations.find(l => l.id === selectedLocationId)?.name || ""}
+        />
+
+        <AddEventDialog
+          open={addEventOpen}
+          onOpenChange={setAddEventOpen}
+          locations={locations}
+          onAddEvent={handleAddEvent}
+        />
+
+        <ComprehensiveEventRating
+          open={ratingDialogOpen}
+          onOpenChange={setRatingDialogOpen}
+          onSubmit={handleSubmitRating}
+          eventName={selectedEvent?.name || ""}
+        />
+
+        <LocationEventsDialog
+          open={selectedLocationForEvents !== null}
+          onOpenChange={(open) => !open && setSelectedLocationForEvents(null)}
+          location={selectedLocation}
+          events={locationEvents}
+          onCheckIn={handleCheckIn}
+        />
       </div>
-
-      {/* Rating Dialog */}
-      <RatingDialog
-        open={selectedLocationId !== null}
-        onOpenChange={(open) => !open && setSelectedLocationId(null)}
-        locationName={
-          locations.find((l) => l.id === selectedLocationId)?.name || ""
-        }
-      />
-
-      {/* Location Events Dialog */}
-      <LocationEventsDialog
-        open={selectedLocationForEvents !== null}
-        onOpenChange={(open) => !open && setSelectedLocationForEvents(null)}
-        locationName={selectedLocation?.name || ""}
-        events={locationEvents}
-        onRateEvent={handleRateEvent}
-      />
-
-      {/* Add Event Dialog */}
-      <AddEventDialog
-        open={addEventOpen}
-        onOpenChange={setAddEventOpen}
-        locations={locations}
-        onAddEvent={handleAddEvent}
-      />
-
-      {/* Event Rating Dialog */}
-      <EventRatingDialog
-        open={eventRatingDialogOpen}
-        onOpenChange={setEventRatingDialogOpen}
-        eventName={events.find((e) => e.id === selectedEventId)?.name || ""}
-        ratingType={ratingType}
-        onSubmit={handleSubmitEventRating}
-      />
     </section>
   );
 };

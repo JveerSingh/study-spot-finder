@@ -23,7 +23,7 @@ interface AddEventDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   locations: Location[];
-  onAddEvent: (event: { name: string; description: string; locationId: string }) => void;
+  onAddEvent: (event: { name: string; description: string; locationId: string; latitude?: number; longitude?: number }) => void;
 }
 
 const AddEventDialog = ({ open, onOpenChange, locations, onAddEvent }: AddEventDialogProps) => {
@@ -34,7 +34,14 @@ const AddEventDialog = ({ open, onOpenChange, locations, onAddEvent }: AddEventD
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (name.trim() && description.trim() && locationId) {
-      onAddEvent({ name, description, locationId });
+      const selectedLocation = locations.find(l => l.id === locationId);
+      onAddEvent({ 
+        name, 
+        description, 
+        locationId,
+        latitude: selectedLocation?.latitude,
+        longitude: selectedLocation?.longitude
+      });
       setName("");
       setDescription("");
       setLocationId("");
