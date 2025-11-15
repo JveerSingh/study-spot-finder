@@ -275,8 +275,8 @@ const Dashboard = () => {
         {/* Tabs for List/Map/Events View */}
         <Tabs defaultValue="list" className="w-full">
           <TabsList className="mb-6 grid w-full max-w-2xl grid-cols-3">
-            <TabsTrigger value="list">List View</TabsTrigger>
-            <TabsTrigger value="map">Map View</TabsTrigger>
+            <TabsTrigger value="list">Spots</TabsTrigger>
+            <TabsTrigger value="map">Map</TabsTrigger>
             <TabsTrigger value="events">Events</TabsTrigger>
           </TabsList>
           
