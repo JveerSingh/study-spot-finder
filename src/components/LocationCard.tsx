@@ -74,7 +74,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
               </h3>
             </div>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              <MapPin className="h-3.5 w-3.5" />
+              <MapPin className="h-4 w-4" />
               <span>{location.building} - {location.floor}</span>
             </div>
           </div>
@@ -134,7 +134,7 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
 
           {/* Last Updated */}
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="h-3.5 w-3.5" />
+            <Clock className="h-4 w-4" />
             <span>Updated {location.lastUpdated}</span>
           </div>
         </div>
