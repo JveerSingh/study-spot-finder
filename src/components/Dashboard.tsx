@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, SlidersHorizontal, Sparkles, Plus } from "lucide-react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -12,6 +12,7 @@ import LocationEventsDialog from "./LocationEventsDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { toast } from "sonner";
 import { getLocations } from "@/data/locations";
+import { supabase } from "@/integrations/supabase/client";
 
 // Get locations from centralized data source
 const mockLocations: Location[] = getLocations();
@@ -21,32 +22,106 @@ const Dashboard = () => {
   const [selectedLocationId, setSelectedLocationId] = useState<string | null>(null);
   const [selectedLocationForEvents, setSelectedLocationForEvents] = useState<string | null>(null);
   const [locations] = useState(mockLocations);
-  const [events, setEvents] = useState<Event[]>([
-    {
-      id: "1",
-      name: "Calculus Study Group",
-      description: "Working through homework problems for Math 1151. All welcome!",
-      locationId: "1",
-      locationName: "Thompson Library - 3rd Floor",
-      timestamp: "Today at 3:00 PM",
-      ratings: [5, 4, 5],
-      crowdednessRatings: [3, 2, 3],
-    },
-    {
-      id: "2",
-      name: "CS Midterm Review",
-      description: "Reviewing for CSE 2221 midterm exam. Bring your notes!",
-      locationId: "2",
-      locationName: "Science & Engineering Library - 2nd Floor",
-      timestamp: "Today at 5:30 PM",
-      ratings: [4, 5, 4, 5],
-      crowdednessRatings: [4, 4, 5],
-    },
-  ]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [addEventOpen, setAddEventOpen] = useState(false);
   const [eventRatingDialogOpen, setEventRatingDialogOpen] = useState(false);
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [ratingType, setRatingType] = useState<'event' | 'crowdedness'>('event');
+  const [loading, setLoading] = useState(true);
+
+  // Fetch events from database
+  useEffect(() => {
+    fetchEvents();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('events-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'events'
+        },
+        () => {
+          fetchEvents();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_ratings'
+        },
+        () => {
+          fetchEvents();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'event_crowdedness_ratings'
+        },
+        () => {
+          fetchEvents();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const { data: eventsData, error: eventsError } = await supabase
+        .from('events')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (eventsError) throw eventsError;
+
+      if (eventsData) {
+        const eventsWithRatings = await Promise.all(
+          eventsData.map(async (event) => {
+            const { data: ratings } = await supabase
+              .from('event_ratings')
+              .select('rating')
+              .eq('event_id', event.id);
+
+            const { data: crowdednessRatings } = await supabase
+              .from('event_crowdedness_ratings')
+              .select('rating')
+              .eq('event_id', event.id);
+
+            const timestamp = new Date(event.created_at).toLocaleString();
+
+            return {
+              id: event.id,
+              name: event.name,
+              description: event.description,
+              locationId: event.location_id,
+              locationName: event.location_name,
+              timestamp,
+              ratings: ratings?.map(r => r.rating) || [],
+              crowdednessRatings: crowdednessRatings?.map(r => r.rating) || [],
+            };
+          })
+        );
+
+        setEvents(eventsWithRatings);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+      toast.error("Failed to load events");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredLocations = locations.filter((location) =>
     location.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -67,25 +142,36 @@ const Dashboard = () => {
     ? getEventsForLocation(selectedLocationForEvents) 
     : [];
 
-  const handleAddEvent = (eventData: { name: string; description: string; locationId: string }) => {
+  const handleAddEvent = async (eventData: { name: string; description: string; locationId: string }) => {
     const location = locations.find((l) => l.id === eventData.locationId);
     if (!location) return;
 
-    const newEvent: Event = {
-      id: String(events.length + 1),
-      name: eventData.name,
-      description: eventData.description,
-      locationId: eventData.locationId,
-      locationName: location.name,
-      timestamp: "Just now",
-      ratings: [],
-      crowdednessRatings: [],
-    };
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to create events");
+        return;
+      }
 
-    setEvents([...events, newEvent]);
-    toast.success("Event created!", {
-      description: `${eventData.name} at ${location.name}`,
-    });
+      const { error } = await supabase
+        .from('events')
+        .insert({
+          name: eventData.name,
+          description: eventData.description,
+          location_id: eventData.locationId,
+          location_name: location.name,
+          created_by: user.id,
+        });
+
+      if (error) throw error;
+
+      toast.success("Event created!", {
+        description: `${eventData.name} at ${location.name}`,
+      });
+    } catch (error) {
+      console.error('Error creating event:', error);
+      toast.error("Failed to create event");
+    }
   };
 
   const handleRateEvent = (eventId: string, type: 'event' | 'crowdedness') => {
@@ -94,27 +180,39 @@ const Dashboard = () => {
     setEventRatingDialogOpen(true);
   };
 
-  const handleSubmitEventRating = (rating: number) => {
+  const handleSubmitEventRating = async (rating: number) => {
     if (!selectedEventId) return;
 
-    setEvents(events.map((event) => {
-      if (event.id === selectedEventId) {
-        if (ratingType === 'event') {
-          return { ...event, ratings: [...event.ratings, rating] };
-        } else {
-          return { ...event, crowdednessRatings: [...event.crowdednessRatings, rating] };
-        }
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("You must be logged in to rate");
+        return;
       }
-      return event;
-    }));
 
-    const event = events.find((e) => e.id === selectedEventId);
-    toast.success(
-      `${ratingType === 'event' ? 'Event' : 'Crowdedness'} rating submitted!`,
-      {
-        description: event?.name,
-      }
-    );
+      const table = ratingType === 'event' ? 'event_ratings' : 'event_crowdedness_ratings';
+      
+      const { error } = await supabase
+        .from(table)
+        .upsert({
+          event_id: selectedEventId,
+          user_id: user.id,
+          rating,
+        });
+
+      if (error) throw error;
+
+      const event = events.find((e) => e.id === selectedEventId);
+      toast.success(
+        `${ratingType === 'event' ? 'Event' : 'Crowdedness'} rating submitted!`,
+        {
+          description: event ? `for ${event.name}` : undefined,
+        }
+      );
+    } catch (error) {
+      console.error('Error submitting rating:', error);
+      toast.error("Failed to submit rating");
+    }
   };
 
   const handleFindBestSpot = () => {
