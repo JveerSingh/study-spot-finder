@@ -55,10 +55,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-50 w-full border-b bg-primary backdrop-blur supports-[backdrop-filter]:bg-primary/95">
         <div className="container flex h-14 items-center justify-between px-4">
-          <h1 className="text-xl font-semibold">OSU Spots</h1>
-          <Button variant="outline" onClick={handleSignOut} size="sm">
+          <h1 className="text-xl font-semibold text-primary-foreground">OSU Spots</h1>
+          <Button variant="outline" onClick={handleSignOut} size="sm" className="border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10">
             Sign Out
           </Button>
         </div>
