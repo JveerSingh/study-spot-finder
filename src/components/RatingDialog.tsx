@@ -8,6 +8,7 @@ import {
 } from "./ui/dialog";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
+import { Slider } from "./ui/slider";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -19,14 +20,9 @@ interface RatingDialogProps {
 }
 
 const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDialogProps) => {
-  const [crowdedness, setCrowdedness] = useState<number | null>(null);
+  const [crowdedness, setCrowdedness] = useState<number>(5);
 
   const handleSubmit = async () => {
-    if (!crowdedness) {
-      toast.error("Please select a crowdedness rating");
-      return;
-    }
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -49,7 +45,7 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
       });
 
       // Reset and close
-      setCrowdedness(null);
+      setCrowdedness(5);
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting rating:', error);
@@ -68,25 +64,18 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          <Label className="text-base font-medium">Crowdedness Level (1-10)</Label>
-          <div className="grid grid-cols-5 gap-2">
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((rating) => (
-              <button
-                key={rating}
-                type="button"
-                onClick={() => setCrowdedness(rating)}
-                className={`
-                  h-12 rounded-md border-2 font-semibold transition-all
-                  ${crowdedness === rating
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border hover:border-primary/50'
-                  }
-                `}
-              >
-                {rating}
-              </button>
-            ))}
+          <div className="flex items-center justify-between">
+            <Label className="text-base font-medium">Crowdedness Level</Label>
+            <span className="text-2xl font-bold text-primary">{crowdedness}</span>
           </div>
+          <Slider
+            value={[crowdedness]}
+            onValueChange={(value) => setCrowdedness(value[0])}
+            min={1}
+            max={10}
+            step={1}
+            className="w-full"
+          />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>Empty</span>
             <span>Very Crowded</span>
@@ -99,7 +88,7 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
             variant="outline"
             className="flex-1"
             onClick={() => {
-              setCrowdedness(null);
+              setCrowdedness(5);
               onOpenChange(false);
             }}
           >
@@ -108,7 +97,6 @@ const RatingDialog = ({ open, onOpenChange, locationName, locationId }: RatingDi
           <Button 
             onClick={handleSubmit}
             className="flex-1"
-            disabled={!crowdedness}
           >
             Submit Rating
           </Button>
