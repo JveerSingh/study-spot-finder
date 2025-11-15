@@ -1,13 +1,11 @@
 import { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Hero from "@/components/Hero";
 import Dashboard from "@/components/Dashboard";
 import { Button } from "@/components/ui/button";
 import { Session } from "@supabase/supabase-js";
 
 const Index = () => {
-  const dashboardRef = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -29,10 +27,6 @@ const Index = () => {
 
     return () => subscription.unsubscribe();
   }, []);
-
-  const scrollToDashboard = () => {
-    dashboardRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -66,10 +60,7 @@ const Index = () => {
           Sign Out
         </Button>
       </div>
-      <Hero onGetStarted={scrollToDashboard} />
-      <div ref={dashboardRef}>
-        <Dashboard />
-      </div>
+      <Dashboard />
     </div>
   );
 };
