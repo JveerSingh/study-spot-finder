@@ -1,4 +1,4 @@
-import { MapPin, Volume2, Users, Clock } from "lucide-react";
+import { MapPin, Volume2, Users, Clock, Calendar } from "lucide-react";
 import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
@@ -21,7 +21,9 @@ export interface Location {
 
 interface LocationCardProps {
   location: Location;
+  eventCount?: number;
   onRate: (locationId: string) => void;
+  onClick?: (locationId: string) => void;
 }
 
 const getOccupancyColor = (occupancy: number) => {
@@ -50,12 +52,15 @@ const getNoiseLabel = (level: NoiseLevel) => {
   return labels[level];
 };
 
-const LocationCard = ({ location, onRate }: LocationCardProps) => {
+const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCardProps) => {
   const occupancyColor = getOccupancyColor(location.occupancy);
   const noiseColor = getNoiseColor(location.noiseLevel);
 
   return (
-    <Card className="overflow-hidden transition-all hover:shadow-md">
+    <Card 
+      className="overflow-hidden transition-all hover:shadow-md cursor-pointer"
+      onClick={() => onClick?.(location.id)}
+    >
       <div className="p-5">
         <div className="mb-4 flex items-start justify-between">
           <div className="flex-1">
@@ -128,8 +133,18 @@ const LocationCard = ({ location, onRate }: LocationCardProps) => {
           </div>
         </div>
 
+        {eventCount > 0 && (
+          <div className="mb-3 flex items-center gap-1.5 text-sm font-medium text-primary">
+            <Calendar className="h-4 w-4" />
+            <span>{eventCount} event{eventCount === 1 ? '' : 's'} happening here</span>
+          </div>
+        )}
+
         <Button 
-          onClick={() => onRate(location.id)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRate(location.id);
+          }}
           variant="outline" 
           className="w-full"
           size="sm"
