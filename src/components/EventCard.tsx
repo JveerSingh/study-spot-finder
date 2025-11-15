@@ -16,6 +16,9 @@ export interface Event {
   crowdednessRatings: number[];
   noiseLevelRatings: number[];
   funLevelRatings: number[];
+  latitude?: number;
+  longitude?: number;
+  distance?: number; // Distance in meters
 }
 
 interface EventCardProps {
@@ -36,6 +39,16 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
     ? (event.funLevelRatings.reduce((a, b) => a + b, 0) / event.funLevelRatings.length).toFixed(1)
     : "N/A";
 
+  // Format distance
+  const formatDistance = (meters?: number) => {
+    if (!meters) return null;
+    const miles = meters / 1609.34;
+    if (miles < 0.1) {
+      return `${Math.round(meters * 3.28084)} ft`;
+    }
+    return `${miles.toFixed(1)} mi`;
+  };
+
   return (
     <Card className="border-primary/20 hover:border-primary/40">
       <CardHeader className="space-y-3 pb-4">
@@ -47,6 +60,12 @@ const EventCard = ({ event, onCheckIn }: EventCardProps) => {
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{event.locationName}</span>
+              {event.distance && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span className="text-xs font-medium">{formatDistance(event.distance)}</span>
+                </>
+              )}
             </div>
           </div>
         </div>

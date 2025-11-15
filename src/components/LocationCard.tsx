@@ -24,6 +24,7 @@ export interface Location {
   crowdednessRating?: number; // Average crowdedness rating 1-10
   ratingCount?: number; // Number of ratings
   noiseLevelRating?: number; // Average noise level rating 1-10
+  distance?: number; // Distance in meters
 }
 
 interface LocationCardProps {
@@ -67,6 +68,16 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
   const LocationTypeIcon = location.type === "dining" ? UtensilsCrossed : BookOpen;
   const iconColor = location.type === "dining" ? "text-warning" : "text-primary";
 
+  // Format distance
+  const formatDistance = (meters?: number) => {
+    if (!meters) return null;
+    const miles = meters / 1609.34;
+    if (miles < 0.1) {
+      return `${Math.round(meters * 3.28084)} ft`;
+    }
+    return `${miles.toFixed(1)} mi`;
+  };
+
   return (
     <Card 
       className="overflow-hidden cursor-pointer border-primary/20 hover:border-primary/40"
@@ -84,6 +95,12 @@ const LocationCard = ({ location, eventCount = 0, onRate, onClick }: LocationCar
             <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
               <span className="truncate">{location.building} - {location.floor}</span>
+              {location.distance && (
+                <>
+                  <span className="text-muted-foreground/50">•</span>
+                  <span className="text-xs font-medium">{formatDistance(location.distance)}</span>
+                </>
+              )}
             </div>
           </div>
           <Badge 
